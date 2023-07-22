@@ -22,6 +22,7 @@ router.post('/createcart', async (req, res) => {
               product_id: req.body.product_id,
               quantity: req.body.quantity,
               price: req.body.price,
+              product_name:req.body.product_name
           });
           await data.save(); // Save changes to the existing document
       } else {
@@ -31,8 +32,10 @@ router.post('/createcart', async (req, res) => {
               items: [
                   {
                       product_id: req.body.product_id,
+                      product_name:req.body.product_name,
                       quantity: req.body.quantity,
                       price: req.body.price,
+                      
                   },
               ],
           };

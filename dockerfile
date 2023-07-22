@@ -1,15 +1,13 @@
-FROM node:16.15.0
+FROM node:18-alpine
 
-RUN npm install -g nodemon
+ENV NODE_ENV=production
 
-WORKDIR /Backend
+WORKDIR /app
 
-COPY package.json .
+COPY ["package.json", "package-lock.json*", "./"]
 
-RUN npm install
+RUN npm install --production
 
 COPY . .
-
-EXPOSE 8670
 
 CMD ["npm" , "run" , "devstart"]

@@ -12,6 +12,9 @@ const customerCartSchema = new mongoose.Schema(
                 type: String,
                 required: true
               },
+            product_name : {
+              type:String
+            },
             quantity:{
                 type: Number,
                 required: true
