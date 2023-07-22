@@ -97,8 +97,8 @@ const Login = (req, res) => {
           const data = {
             Subject: "Login SuccessFully",
             name: username,
-            first_name: "Dear Yuvrajsinh hope you are doing well!",
-            email: "yuvrajsinh73598@gmail.com"
+            first_name: `Dear ${admin.user} Yuvrajsinh hope you are doing well`,
+            email: admin.email
           };
 
 
