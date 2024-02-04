@@ -97,8 +97,8 @@ const Login = (req, res) => {
           const data = {
             Subject: "Login SuccessFully",
             name: username,
-            first_name: `Dear ${admin.user} Yuvrajsinh hope you are doing well`,
-            email: admin.email
+            first_name: "Dear Yuvrajsinh hope you are doing well!",
+            email: "yuvrajsinh73598@gmail.com"
           };
 
 
@@ -112,7 +112,8 @@ const Login = (req, res) => {
             user: {
               name: admin.Name,
               email: admin.email,
-              _id: admin._id
+              _id: admin._id,
+              storedData:admin?.savedProducts
             },
           });
         } else {
@@ -130,15 +131,15 @@ const Login = (req, res) => {
 const isVerifiedRegister = async (req, res) => {
   const { email, clientOtp, password, repassword } = req.body;
 
-  if (!email) {
+  if (!trim(email)) {
     return res.status(400).json({ message: "email missing" });
   }
 
-  if (!clientOtp) {
+  if (!trim(clientOtp)) {
     return res.status(400).json({ message: "clientOtp missing" });
   }
 
-  if (!password) {
+  if (!trim(password)) {
     return res.status(400).json({ message: "password missing" });
   }
 
@@ -172,20 +173,84 @@ const isVerifiedRegister = async (req, res) => {
   }
 };
 
+const isGoogleLogin = async (req, res) => {
+  const { email, email_verified, name, picture, sub } = req.body;
 
-// router.get('/api/validateToken', (req, res) => {
-//   const token = req.headers.authorization.split(' ')[1];
-//   try {
-//     const decodedToken = jwt.verify(token, secret);
-//     res.sendStatus(200);
-//   } catch (err) {
-//     res.sendStatus(401);
-//   }
-// });
+  try {
+    if(!email_verified){
+      return res.status(400).json({message:"email is not verified by Google!"})
+    }
+    let userfound = await UserSchema.findOne({ email: email });
+    let newUser = false;
+
+    if (!userfound) {
+      let dataRegister = {
+        Sno: sub,
+        email: email,
+        Name: name,
+        Image: picture,
+        isVerified: email_verified,
+      };
+
+      const loguser = new UserSchema(dataRegister);
+      userfound = await loguser.save();
+      newUser = true;
+    }
+
+    const token = jwt.sign(
+      { userID: userfound._id, type: newUser ? "IsgoogleUser" : userfound.type },
+      process.env.JWT_SECRET_ACCESS_TOKEN,
+      {
+        expiresIn: "24h", // expires in 24 hours
+      }
+    );
+    const data = {
+      Subject: "Login Successfully",
+      name: userfound.Name,
+      first_name: `Dear ${userfound.Name}, hope you are doing well!`,
+      email: userfound.email,
+  
+    };
+
+    commonMailFunctionToAll(data, "loginsuccess");
+    return res.status(200).json({
+      status: 200,
+      message: "Authentication successful!",
+      token: token,
+      role: userfound.type,
+      user: {
+        name: userfound.Name,
+        email: userfound.email,
+        _id: userfound._id,
+        savedProducts:userfound?.savedProducts
+      },
+    });
+  } catch (err) {
+    // Handle errors here
+
+    if (err.name === 'MongoError' && err.code === 11000) {
+      // Duplicate key error (email already exists)
+      return res.status(400).json({
+        status: 400,
+        message: "Google internal login issues, please log in with credentials.",
+      });
+    } else {
+      // Generic server error
+      console.error(err);
+      return res.status(500).json({
+        status: 500,
+        message: "Internal server error",
+      });
+    }
+  }
+};
+
+
 
 router.post("/login", Login)
 router.post("/register", register)
 router.post("/isVerifiedRegister", isVerifiedRegister)
+router.post("/isGoogleLogin", isGoogleLogin)
 
 
 
