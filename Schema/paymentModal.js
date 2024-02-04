@@ -13,9 +13,6 @@ const paymentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  email:{
-    type:String
-  }
 });
 
 module.exports =   mongoose.model("Payment", paymentSchema);

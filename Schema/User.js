@@ -3,12 +3,28 @@ const UserSchema = new mongoose.Schema(
     {
         Sno: Number,
         Name: { type: String, required: true, default: "" },
+        Image: { type: String, default: "" },
+        savedProducts: [
+            {
+              type: mongoose.Schema.Types.ObjectId,
+              ref: 'Cloths',
+            },
+            {
+              type: mongoose.Schema.Types.ObjectId,
+              ref: 'Mobiles&Accessories', 
+            },
+            {
+              type: mongoose.Schema.Types.ObjectId,
+              ref: 'Computers&Accessories', 
+            },
+          ],
         designation: { type: String, default: "" },
-        phone: { type: String, required: true, default: "" },
+        phone: { type: String, default: "" },
         email: {
             type: String,
             unique: true,
             required: true,
+            default:""
         },
         password: {
             type: String,
