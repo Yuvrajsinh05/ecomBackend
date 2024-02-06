@@ -1,13 +1,20 @@
-FROM node:18-alpine
+# Use the official Node.js image as the base image
+FROM node:14
 
-ENV NODE_ENV=production
+# Set the working directory
+WORKDIR /app/backend
 
-WORKDIR /app
+# Copy package.json and package-lock.json to the working directory
+COPY package*.json ./
 
-COPY ["package.json", "package-lock.json*", "./"]
+# Install dependencies
+RUN npm install
 
-RUN npm install --production
-
+# Copy the rest of the application code
 COPY . .
 
-CMD ["npm" , "run" , "devstart"]
+# Expose the port your app will run on
+EXPOSE 8670
+
+# Start the backend server
+CMD ["npm", "run" ,"devstart"]
