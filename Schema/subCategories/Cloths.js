@@ -10,7 +10,8 @@ const ProductSchema = new Schema({
     subcategory: { type: String, required: true },
     type:{type:String , required:true},
     SubType:{type:String , required:true},
-    Brands:{type:Array , required:true}
+    Brands:{type:Array , required:true},
+    brand:{type:String }
   });
 const FashionProducts = mongoose.model('Fashion', ProductSchema);
 
