@@ -3,14 +3,13 @@ require("dotenv").config();
 require('./config')
 const {CategoriesRoutes,ProductsRoutes,AuthUser,customer,PaymentGateway} = require("./routes/router")
 const cors = require('cors');
-// const verifyToken = require('./middlewares/security')
-// import {  } from './middlewares/security';
+const verifyToken = require('./middlewares/security')
 
 const app = express()
 
 app.use(express.json())
 app.use(cors())
-// app.use(verifyToken)
+app.use(verifyToken)
 
 app.use("/admin",AuthUser);
 app.use("/admin",CategoriesRoutes);
