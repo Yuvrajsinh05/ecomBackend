@@ -7,34 +7,11 @@ const jwt = require('jsonwebtoken')
 const FashionProducts = require("../Schema/subCategories/Cloths")
 
 
-// Define the middleware function
-function verifyToken(req, res, next) {
-  // Get the JWT from the Authorization header
-  if (req.path === '/login' || req.path === '/register' || req.path === '/isVerifiedRegister') {
-    return next();
-  }
-  let token = req.headers["authorization"];
-  if (!token) {
-    return res.status(401).json({ error: 'No token provided' });
-  }
-
-  // Verify the JWT
-  jwt.verify(token, process.env.JWT_SECRET_ACCESS_TOKEN, function (err, decoded) {
-    if (err) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
-    // Attach the decoded payload to the request object and proceed to the next middleware
-    req.user = decoded;
-    return next();
-  });
-}
-
 
 
 // computer&Accessories start here 
 
-router.get('/Electronics/Computers&Accessories', verifyToken, async (req, res) => {
+router.get('/Electronics/Computers&Accessories', async (req, res) => {
   try {
     const collection = await computerSchema.find()
     res.status(200).json({ data: collection, message: "computer&Accessories data found" })

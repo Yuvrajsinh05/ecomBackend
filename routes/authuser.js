@@ -127,7 +127,6 @@ const Login = (req, res) => {
   }
 };
 
-
 const isVerifiedRegister = async (req, res) => {
   const { email, clientOtp, password, repassword } = req.body;
 
@@ -244,7 +243,6 @@ const isGoogleLogin = async (req, res) => {
     }
   }
 };
-
 
 
 router.post("/login", Login)
