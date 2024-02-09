@@ -5,36 +5,14 @@ const CategoriesSchema = require("../Schema/Categories")
 const Mobileschema = require("../Schema/subCategories/Mobiles&Accessories")
 const jwt = require('jsonwebtoken')
 const FashionProducts = require("../Schema/subCategories/Cloths")
+const { query } = require("express")
 
-
-// Define the middleware function
-function verifyToken(req, res, next) {
-  // Get the JWT from the Authorization header
-  if (req.path === '/login' || req.path === '/register' || req.path === '/isVerifiedRegister') {
-    return next();
-  }
-  let token = req.headers["authorization"];
-  if (!token) {
-    return res.status(401).json({ error: 'No token provided' });
-  }
-
-  // Verify the JWT
-  jwt.verify(token, process.env.JWT_SECRET_ACCESS_TOKEN, function (err, decoded) {
-    if (err) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-
-    // Attach the decoded payload to the request object and proceed to the next middleware
-    req.user = decoded;
-    return next();
-  });
-}
 
 
 
 // computer&Accessories start here 
 
-router.get('/Electronics/Computers&Accessories', verifyToken, async (req, res) => {
+router.get('/Electronics/Computers&Accessories', async (req, res) => {
   try {
     const collection = await computerSchema.find()
     res.status(200).json({ data: collection, message: "computer&Accessories data found" })
@@ -186,6 +164,16 @@ router.get('/Fashion/:id', async (req, res) => {
 })
 
 
+router.get('/getFilterDetails',async(req,res)=>{
+  try{
+   let Query = req.query.str
+   const Filterd =  await FilterSchema.find({type:Query})
+   res.status(200).json({data:Filterd,message:"Filtered Found"})
+  }catch(err){
+    res.status(400).json({message:"Internal Server Problem"})
+  }
+})
+
 
 
 
@@ -229,7 +217,7 @@ function filterMobiles(computers, priceRange, brands) {
   const filteredData = {
     // type: "Mobiles&Accessories",
     // type: "Computers&Accessories",
-    type: "Men's Clothing",
+    type: "Sunglasses",
     Category: "Fashion",
     PriceRange: {},
     Brands: {}
@@ -247,19 +235,22 @@ function filterMobiles(computers, priceRange, brands) {
   for (const mobile of computers) {
     const mobilePrice = parseInt(mobile.price);
 
-    for (const range of priceRange) {
-      const [min, max] = range.split(" - ").map(Number);
-
-      if (mobilePrice >= min && mobilePrice <= max) {
-        filteredData.PriceRange[range]++;
-        break; // Mobile can belong to only one price range
+    if(mobile.type==filteredData.type){
+      for (const range of priceRange) {
+        const [min, max] = range.split(" - ").map(Number);
+  
+        if (mobilePrice >= min && mobilePrice <= max) {
+          filteredData.PriceRange[range]++;
+          break; // Mobile can belong to only one price range
+        }
+      }
+  
+      const brand = mobile.brand;
+      if (brands.includes(brand)) {
+        filteredData.Brands[brand]++;
       }
     }
 
-    const brand = mobile.brand;
-    if (brands.includes(brand)) {
-      filteredData.Brands[brand]++;
-    }
   }
 
   return filteredData;
@@ -274,23 +265,21 @@ router.post('/filter', async (req, res) => {
 
     // const filterData = filterDataByType(categories, "Mobiles&Accessories");
     // const filterData = filterDataByType(categories, "Computers&Accessories");
-    const filterData = filterDataByType(categories, "Men's Clothing");
-
-
+    const filterData = filterDataByType(categories, "Sunglasses");
     const brands = filterData?.Brands;
     const priceRange = filterData?.Range;
 
     // const filteredMobiles = filterMobiles(mobiles, priceRange, brands);
     // const filteredComputers = filterMobiles(Computers, priceRange, brands);
-    // const filteredFashion = filterMobiles(fashion, priceRange, brands);
+    const filteredFashion = filterMobiles(fashion, priceRange, brands);
 
 
     // let saveFilters  = new FilterSchema(filteredMobiles)
     // let saveFilters  = new FilterSchema(filteredComputers)
-    // let saveFilters  = new FilterSchema(filteredFashion)
+    let saveFilters  = new FilterSchema(filteredFashion)
 
-    // await saveFilters.save()
-    res.status(200).json({ data: filterData });
+    await saveFilters.save()
+    res.status(200).json({ data: saveFilters });
   } catch (err) {
     console.log("Error:", err);
     res.status(400).json({ message: err });
@@ -315,3 +304,175 @@ module.exports = router;
 
 
 // http://localhost:8670/admin/Fashion/Jewelry
+
+
+
+let ok = {
+  "Categories": "Fashion",
+  "SubCategories": [
+    {
+      "type": "Clothing",
+      "SubType": [
+        {
+          "Name": "Men's Clothing",
+          "Brands": [
+            "Nike",
+            "Adidas",
+            "Levi's",
+            "Ralph Lauren"
+          ],
+          "Range": [
+            "50 - 100",
+            "100 - 200",
+            "200 - 300",
+            "300 - 400",
+            "400 - 500"
+          ]
+        },
+        {
+          "Name": "Women's Clothing",
+          "Brands": [
+            "Victoria's Secret",
+            "H&M",
+            "Forever 21",
+            "Zara"
+          ],
+          "Range": [
+            "50 - 100",
+            "100 - 200",
+            "200 - 300",
+            "300 - 400",
+            "400 - 500"
+          ]
+        },
+        {
+          "Name": "Children's Clothing",
+          "Brands": [
+            "GAP Kids",
+            "Carters",
+            "OshKosh B'gosh",
+            "The Children's Place"
+          ],
+          "Range": [
+            "50 - 100",
+            "100 - 200",
+            "200 - 300",
+            "300 - 400",
+            "400 - 500"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Shoes",
+      "SubType": [
+        {
+          "Name": "Men's Shoes",
+          "Brands": [
+            "Nike",
+            "Adidas",
+            "New Balance",
+            "Timberland"
+          ],
+          "Range": [
+            "50 - 100",
+            "100 - 200",
+            "200 - 300",
+            "300 - 400",
+            "400 - 500"
+          ]
+        },
+        {
+          "Name": "Women's Shoes",
+          "Brands": [
+            "Steve Madden",
+            "Nine West",
+            "Skechers",
+            "UGG"
+          ],
+          "Range": [
+            "50 - 100",
+            "100 - 200",
+            "200 - 300",
+            "300 - 400",
+            "400 - 500"
+          ]
+        },
+        {
+          "Name": "Children's Shoes",
+          "Brands": [
+            "Stride Rite",
+            "Skechers Kids",
+            "Nike Kids",
+            "Crocs Kids"
+          ],
+          "Range": [
+            "50 - 100",
+            "100 - 200",
+            "200 - 300",
+            "300 - 400",
+            "400 - 500"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Accessories",
+      "SubType": [
+        {
+          "Name": "Jewelry",
+          "Brands": [
+            "Tiffany & Co.",
+            "Pandora",
+            "Swarovski",
+            "Kate Spade"
+          ],
+          "Range": [
+            "50 - 100",
+            "100 - 200",
+            "200 - 300",
+            "300 - 400",
+            "400 - 500"
+          ]
+        },
+        {
+          "Name": "Handbags",
+          "Brands": [
+            "Coach",
+            "Michael Kors",
+            "Kate Spade",
+            "Louis Vuitton"
+          ],
+          "Range": [
+            "50 - 100",
+            "100 - 200",
+            "200 - 300",
+            "300 - 400",
+            "400 - 500"
+          ]
+        },
+        {
+          "Name": "Sunglasses",
+          "Brands": [
+            "Ray-Ban",
+            "Oakley",
+            "Prada",
+            "Gucci"
+          ],
+          "Range": [
+            "50 - 100",
+            "100 - 200",
+            "200 - 300",
+            "300 - 400",
+            "400 - 500"
+          ]
+        }
+      ]
+    }
+  ],
+  "Products": [],
+  "img": "https://i.ibb.co/BC54ftF/depositphotos-33572091-stock-illustration-clothes-icons.jpg",
+  "count": {
+    "$numberInt": "41"
+  }
+}

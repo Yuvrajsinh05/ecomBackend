@@ -77,7 +77,6 @@ router.post('/savedProducts', async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    console.log("productId",productId)
     const savedProducts = user?.savedProducts || [];
     const index = savedProducts?.indexOf(productId);
 

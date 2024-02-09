@@ -10,7 +10,6 @@ router.get('/Categories', async (req, res) => {
   res.end()
 })
 
-
 router.get('/category', async (req, res) => {
   try {
     const queryCategory = req.query.id;
@@ -39,9 +38,6 @@ router.get('/category', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
-
-
 
 router.post('/createCategories', async (req, res) => {
 
@@ -72,19 +68,11 @@ router.post('/createCategories', async (req, res) => {
   }
 })
 
-
-
-
-// homeCorousel starts here
 router.get('/homecorousel', async (req, res) => {
   let data = await HomeCorouselSchema.find()
   res.send((JSON.stringify(data)))
   res.end()
 })
-// homeCarousel ends here
-
-
-
 
 
 
