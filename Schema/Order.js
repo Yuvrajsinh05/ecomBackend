@@ -3,10 +3,9 @@ const { default: mongoose } = require("mongoose");
 
 
 const OrderSchema = new mongoose.Schema({
-    orderId: {
+    razorOrderId: {
         type: String,
         required: true,
-        unique: true,
     },
     customer_id: {
         type: mongoose.Schema.Types.ObjectId, // Assuming customer ID is an ObjectId
@@ -24,22 +23,9 @@ const OrderSchema = new mongoose.Schema({
         enum: ['pending', 'processing', 'shipped', 'delivered', 'canceled'],
         default: 'pending',
     },
-    shipping_address: {
-        street: {
-            type: String
-        },
-        city: {
-            type: String
-        },
-        state: {
-            type: String
-        },
-        zipcode: {
-            type: String
-        },
-        country: {
-            type: String
-        }
+    paymentStatus : {
+        type:String,
+        enum:['pending', 'completed', 'failed']
     },
     items: [
         {
@@ -53,9 +39,44 @@ const OrderSchema = new mongoose.Schema({
                 type: String
             }
         }
-    ]
+    ],
+    billingDetails: {
+        fName: {
+            type: String,
+            required: true
+        },
+        lName: {
+            type: String,
+            required: true
+        },
+        email:{
+            type:String,
+            required:true
+        },
+        ContactNo:{
+            type:String,
+            required:true
+        },
+
+        address:{
+            street: {
+                type: String
+            },
+            city: {
+                type: String
+            },
+            state: {
+                type: String
+            },
+            zipcode: {
+                type: String
+            },
+            country: {
+                type: String
+            }
+        }
+   
+    },
 })
 
 module.exports = mongoose.model('Orders', OrderSchema)
-
-

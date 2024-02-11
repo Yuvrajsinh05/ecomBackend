@@ -1,10 +1,11 @@
 const jwt = require('jsonwebtoken')
+const UserSchema = require("../Schema/User")
 
-// Define the middleware function
+
 function verifyToken(req, res, next) {
-
     console.log("Calling" ,req.path)
-    // Get the JWT from the Authorization header
+    console.log("Calling" ,req.customer)
+    
     if (req.path === '/admin/login' || req.path === '/admin/register' || req.path === '/admin/isVerifiedRegister' || req.path==='/admin/isGoogleLogin') {
       return next();
     }
@@ -18,14 +19,15 @@ function verifyToken(req, res, next) {
       if (err) {
         return res.status(401).json({ error: 'Invalid token' });
       }
-  
-      // Attach the decoded payload to the request object and proceed to the next middleware
-      req.user = decoded;
+      req.customer = decoded;
+
       return next();
     });
   }
+
+
   
-  module.exports = verifyToken;
+  module.exports = {verifyToken};
 
   
   

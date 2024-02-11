@@ -2,6 +2,7 @@ const nodemailer = require("nodemailer");
 const ejs = require('ejs');
 const path = require('path');
 const fs = require('fs');
+const juice = require('juice');
 
 
 
@@ -26,7 +27,7 @@ const sendMail = async (from, to, subject, template, text, attachments = []) => 
     attachments
   };
   try {
-    let info = await transporter.sendMail(mail);
+    await transporter.sendMail(mail);
     return true;
   } catch (error) {
     console.log('Error from elastic email:' + error);
@@ -34,17 +35,20 @@ const sendMail = async (from, to, subject, template, text, attachments = []) => 
 };
 
 
-const commonMailFunctionToAll = (dataToCompile, template) => {
+const commonMailFunctionToAll = async (dataToCompile, template) => {
   try {
-    let filePath = path.resolve(__dirname + `/template/${template}.ejs`)
-    let compiled = ejs.compile(fs.readFileSync(filePath, 'utf8'))
-    let  Subject = dataToCompile.Subject;
-    return sendMail("yuvrajsinh0005@gmail.com", dataToCompile.email, Subject, compiled(dataToCompile), dataToCompile.text || '');
+    let filePath = path.resolve(__dirname, `template/${template}.ejs`);
+    let compiled = ejs.compile(fs.readFileSync(filePath, 'utf8'));
+    let Subject = dataToCompile.Subject;
+    let htmlTemplate = compiled(dataToCompile);
+    htmlTemplate = await juice(htmlTemplate);
+
+    return sendMail("yuvrajsinh0005@gmail.com", dataToCompile.email, Subject, htmlTemplate, dataToCompile.text || '');
   } catch (e) {
-    // logger.error(e);
     console.log(e);
   }
 };
+
 
 
 module.exports = { sendMail, commonMailFunctionToAll };
