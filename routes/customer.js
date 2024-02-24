@@ -77,8 +77,6 @@ router.post('/updatequantity', async (req, res) => {
 });
 
 
-
-
 router.post('/updateItems', async (req, res) => {
   try {
     let qid = req.query.id

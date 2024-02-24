@@ -7,8 +7,11 @@ const hashpassword = require('../libs/passwordLib').hashpassword
 const comparePasswordSync = require('../libs/passwordLib').comparePasswordSync
 const jwt = require('jsonwebtoken')
 const commonMailFunctionToAll = require('../libs/maillib').commonMailFunctionToAll
+const passport = require('passport');
+const GitHubStrategy = require('passport-github').Strategy;
 
-
+// Passport initialization
+router.use(passport.initialize());
 
 const register = async (req, res) => {
 
@@ -245,10 +248,49 @@ const isGoogleLogin = async (req, res) => {
 };
 
 
+const isGithubLogin = async(req,res) =>{
+  try{
+     console.log("called" , req,res)
+  }catch(err){
+    return res.status(500).json({
+      status: 500,
+      message: "Internal server error",
+    });
+  }
+}
+
+
+
+
+// Configure GitHub authentication strategy
+function isGithubLogin() {
+  passport.use(new GitHubStrategy({
+    clientID: process.env.GITHUB_CLIENT_ID,
+    clientSecret: process.env.GITHUB_CLIENT_SECRET,
+    callbackURL: 'http://localhost:3001/auth/github/callback', // Adjust URL accordingly
+  }, async (accessToken, refreshToken, profile, done) => {
+    try {
+      let user = await UserSchema.findOne({ githubId: profile.id });
+      if (!user) {
+        user = new UserSchema({
+          githubId: profile.id,
+          Name: profile.displayName,
+          email: profile.emails[0].value // Assuming GitHub provides email in the profile
+        });
+        await user.save();
+      }
+      return done(null, user);
+    } catch (error) {
+      return done(error);
+    }
+  }));
+}
+
 router.post("/login", Login)
 router.post("/register", register)
 router.post("/isVerifiedRegister", isVerifiedRegister)
 router.post("/isGoogleLogin", isGoogleLogin)
+router.get("/isGithubLogin", isGithubLogin)
 
 
 
