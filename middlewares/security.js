@@ -6,7 +6,13 @@ function verifyToken(req, res, next) {
     console.log("Calling" ,req.path)
     console.log("Calling" ,req.customer)
     
-    if (req.path === '/admin/login' || req.path === '/admin/register' || req.path === '/admin/isVerifiedRegister' || req.path==='/admin/isGoogleLogin') {
+    if (req.path === '/admin/login'
+   || req.path === '/admin/register' 
+   || req.path === '/admin/isVerifiedRegister' 
+   || req.path==='/admin/isGoogleLogin' 
+   || req.path==='/admin/isGithubLogin'
+   || req.path==='/admin/isGitcallback'
+   ) {
       return next();
     }
     let token = req.headers["authorization"];

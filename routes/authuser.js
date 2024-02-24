@@ -8,7 +8,8 @@ const comparePasswordSync = require('../libs/passwordLib').comparePasswordSync
 const jwt = require('jsonwebtoken')
 const commonMailFunctionToAll = require('../libs/maillib').commonMailFunctionToAll
 const passport = require('passport');
-const GitHubStrategy = require('passport-github').Strategy;
+const querystring = require('querystring');
+const axios = require('axios')
 
 // Passport initialization
 router.use(passport.initialize());
@@ -247,50 +248,115 @@ const isGoogleLogin = async (req, res) => {
   }
 };
 
+const isGitcallback = async (req, res) => {
+  try {
+    const { code } = req.query;
 
-const isGithubLogin = async(req,res) =>{
-  try{
-     console.log("called" , req,res)
-  }catch(err){
+    // Exchange the GitHub code for an access token
+    const tokenResponse = await axios.post('https://github.com/login/oauth/access_token', {
+      client_id: process.env.GITHUB_CLIENT_ID,
+      client_secret: process.env.GITHUB_CLIENT_SECRET,
+      code,
+    }, {
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+
+    const accessToken = tokenResponse.data.access_token;
+
+    // Get user details using the access token
+    const userDetailsResponse = await axios.get('https://api.github.com/user', {
+      headers: {
+        Authorization: `token ${accessToken}`,
+      },
+    });
+
+    // Extract required user details
+    const { avatar_url, name, email } = userDetailsResponse.data;
+
+    // Check if the email is verified
+    if (!email) {
+      return res.status(400).json({ message: "Email not found in GitHub profile." });
+    }
+
+    // You can add additional checks for email verification if required
+    // For example, check if the email is verified by GitHub
+
+    // Proceed with your user registration logic similar to isGoogleLogin
+    let userfound = await UserSchema.findOne({ email });
+
+    if (!userfound) {
+      // User not found, create a new user
+      const dataRegister = {
+        // Adjust fields as needed based on your schema
+        email,
+        Name: name,
+        Image: avatar_url,
+        isVerified: true, // GitHub doesn't provide email verification status, assume it's true
+      };
+
+      const loguser = new UserSchema(dataRegister);
+      userfound = await loguser.save();
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { userID: userfound._id, type: "IsgithubUser" },
+      process.env.JWT_SECRET_ACCESS_TOKEN,
+      {
+        expiresIn: "24h", // expires in 24 hours
+      }
+    );
+
+    // Respond with authentication successful
+    return res.status(200).json({
+      status: 200,
+      message: "Authentication successful!",
+      token,
+      role: "IsgithubUser", // Update with your logic for determining user role
+      user: {
+        name: userfound.Name,
+        email: userfound.email,
+        _id: userfound._id,
+        savedProducts: userfound?.savedProducts
+      },
+    });
+  } catch (err) {
+    console.error("Error occurred during GitHub callback:", err);
     return res.status(500).json({
       status: 500,
       message: "Internal server error",
     });
   }
+};
+
+
+
+const isGithubLogin = async (req, res) => {
+  console.log("call,call,call");
+  try {
+    const params = {
+      client_id: process.env.GITHUB_CLIENT_ID
+    };
+    const queryString = querystring.stringify(params);
+    console.log("queryString", queryString);
+    const githubAuthUrl = `https://github.com/login/oauth/authorize?${queryString}`;
+    res.status(200).json({reDirect :githubAuthUrl})
+    // res.redirect(githubAuthUrl);
+  } catch (err) {
+    console.log("gitLoginErr", err);
+  }
 }
 
 
-
-
-// Configure GitHub authentication strategy
-function isGithubLogin() {
-  passport.use(new GitHubStrategy({
-    clientID: process.env.GITHUB_CLIENT_ID,
-    clientSecret: process.env.GITHUB_CLIENT_SECRET,
-    callbackURL: 'http://localhost:3001/auth/github/callback', // Adjust URL accordingly
-  }, async (accessToken, refreshToken, profile, done) => {
-    try {
-      let user = await UserSchema.findOne({ githubId: profile.id });
-      if (!user) {
-        user = new UserSchema({
-          githubId: profile.id,
-          Name: profile.displayName,
-          email: profile.emails[0].value // Assuming GitHub provides email in the profile
-        });
-        await user.save();
-      }
-      return done(null, user);
-    } catch (error) {
-      return done(error);
-    }
-  }));
-}
 
 router.post("/login", Login)
 router.post("/register", register)
 router.post("/isVerifiedRegister", isVerifiedRegister)
 router.post("/isGoogleLogin", isGoogleLogin)
 router.get("/isGithubLogin", isGithubLogin)
+router.get("/isGitcallback", isGitcallback)
 
 
 
