@@ -310,18 +310,8 @@ const isGitcallback = async (req, res) => {
     );
 
     // Respond with authentication successful
-    return res.status(200).json({
-      status: 200,
-      message: "Authentication successful!",
-      token,
-      role: "IsgithubUser", // Update with your logic for determining user role
-      user: {
-        name: userfound.Name,
-        email: userfound.email,
-        _id: userfound._id,
-        savedProducts: userfound?.savedProducts
-      },
-    });
+    return res.redirect(`http://localhost:3000/?token=${token}&name=${userfound.Name}&email=${userfound.email}&_id=${userfound._id}&savedProducts=${userfound?.savedProducts}`);
+
   } catch (err) {
     console.error("Error occurred during GitHub callback:", err);
     return res.status(500).json({
