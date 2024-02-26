@@ -52,12 +52,13 @@
 </head>
 <body>
     <div class="container">
-        <h1>Login Confirmation!</h1>
-        <p>Hello <%= name %>,</p>
-        <p>Your login details have been confirmed:</p>
+        <h1>Registration Successful!</h1>
+        <p>Dear <%= Name %>,</p>
+        <p>We are thrilled to welcome you to our platform. Your registration was successful!</p>
         <div class="info">
-            <!-- <p><strong>Ip:</strong> <%= email %></p> -->
-            <p><%= first_name %></p>
+            <p><strong>Email:</strong> <%= email %></p>
+            <p><strong>Phone Number:</strong> <%= PhoneNum %></p>
+            <p><strong>One Time Password (OTP):</strong> <%= userOTP %></p>
         </div>
         <p>We hope you enjoy your experience with us!</p>
         <div class="authority">
@@ -69,5 +70,3 @@
     </div>
 </body>
 </html>
-
-

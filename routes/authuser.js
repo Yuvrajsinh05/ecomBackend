@@ -10,6 +10,7 @@ const commonMailFunctionToAll = require('../libs/maillib').commonMailFunctionToA
 const passport = require('passport');
 const querystring = require('querystring');
 const axios = require('axios')
+const customerCartSchema = require('../Schema/customerCart')
 
 // Passport initialization
 router.use(passport.initialize());
@@ -58,11 +59,15 @@ const register = async (req, res) => {
       PhoneNum: phone
     };
 
+
     const Findhim = await UserSchema.findOne({ email: UserEmail })
     if (Findhim) {
-      return res.status(400).json({ message: "email already exists" })
+      return res.status(500).json({ status:500 ,  message: "email already exists" })
     }
+
+    console.log("startsending")
     commonMailFunctionToAll(mailUserReg, "register");
+    console.log("finishSending")
     try {
       const response = await createUser.save()
       res.status(200).json({ message: "Admin Registration successfull", data: response });
@@ -87,7 +92,7 @@ const Login = (req, res) => {
     let password = trim(req.body.password);
     UserSchema.findOne(
       { email: username, isVerified: true, isActive: true, isPublished: true },
-      (err, admin) => {
+      async (err, admin) => {
         console.log("admin", admin)
         if (admin && comparePasswordSync(password, admin?.password)) {
           const token = jwt.sign(
@@ -104,22 +109,24 @@ const Login = (req, res) => {
             first_name: "Dear Yuvrajsinh hope you are doing well!",
             email: "yuvrajsinh73598@gmail.com"
           };
-
-
           commonMailFunctionToAll(data, "loginsuccess");
 
-          return res.status(200).json({
-            success: true,
-            message: "Authentication successful!",
-            token: token,
-            role: admin.type,
-            user: {
-              name: admin.Name,
-              email: admin.email,
-              _id: admin._id,
-              storedData:admin?.savedProducts
-            },
-          });
+          try {
+            // Retrieve data from customerCartSchema based on userID
+            let getUserCarts = await customerCartSchema.find({ customer_id: admin._id });
+            
+            return res.status(200).json({
+              success: true,
+              message: "Authentication successful!",
+              token: token,
+              role: admin.type,
+              Userdata: admin,
+              CartItems :getUserCarts[0]?.items // Include user carts data in the response
+            });
+          } catch (error) {
+            console.error("Error retrieving user carts:", error);
+            return res.status(500).json({ message: "Internal server error" });
+          }
         } else {
           return res.status(401).json({
             success: false,
@@ -130,6 +137,7 @@ const Login = (req, res) => {
     );
   }
 };
+
 
 const isVerifiedRegister = async (req, res) => {
   const { email, clientOtp, password, repassword } = req.body;
@@ -214,6 +222,8 @@ const isGoogleLogin = async (req, res) => {
       email: userfound.email,
   
     };
+    let getUserCarts = await customerCartSchema.find({ customer_id: userfound?._id });
+            
 
     commonMailFunctionToAll(data, "loginsuccess");
     return res.status(200).json({
@@ -221,12 +231,8 @@ const isGoogleLogin = async (req, res) => {
       message: "Authentication successful!",
       token: token,
       role: userfound.type,
-      user: {
-        name: userfound.Name,
-        email: userfound.email,
-        _id: userfound._id,
-        savedProducts:userfound?.savedProducts
-      },
+      Userdata: userfound,
+      CartItems :getUserCarts[0]?.items 
     });
   } catch (err) {
     // Handle errors here
@@ -279,6 +285,18 @@ const isGitcallback = async (req, res) => {
     if (!email) {
       return res.status(400).json({ message: "Email not found in GitHub profile." });
     }
+    if (!name) {
+      return res.status(400).json({ message: "Name not found in GitHub profile." });
+    }
+    const data = {
+      Subject: "Login Successfully",
+      name: name,
+      first_name: `Dear ${name}, hope you are doing well!`,
+      email: email,
+  
+    };
+
+    commonMailFunctionToAll(data, "loginsuccess");
 
     // You can add additional checks for email verification if required
     // For example, check if the email is verified by GitHub
@@ -321,23 +339,36 @@ const isGitcallback = async (req, res) => {
   }
 };
 
-
-
 const isGithubLogin = async (req, res) => {
-  console.log("call,call,call");
   try {
     const params = {
       client_id: process.env.GITHUB_CLIENT_ID
     };
     const queryString = querystring.stringify(params);
-    console.log("queryString", queryString);
     const githubAuthUrl = `https://github.com/login/oauth/authorize?${queryString}`;
     res.status(200).json({reDirect :githubAuthUrl})
     // res.redirect(githubAuthUrl);
   } catch (err) {
-    console.log("gitLoginErr", err);
+    console.log("GitLoginErr", err);
   }
 }
+
+const UserDetails = async (req, res) => {
+  try {
+    const { userID } = req.customer;
+    let fetchUserDetails = await UserSchema.findById(userID);
+    if (!fetchUserDetails) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    let getUserCarts = await customerCartSchema.find({ customer_id: userID });
+
+    res.status(200).json({ Userdata: fetchUserDetails , CartItems :getUserCarts[0]?.items, message: "Details Found" });
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).json({ error: err, message: "Internal Server Error" });
+  }
+};
+
 
 
 
@@ -347,6 +378,7 @@ router.post("/isVerifiedRegister", isVerifiedRegister)
 router.post("/isGoogleLogin", isGoogleLogin)
 router.get("/isGithubLogin", isGithubLogin)
 router.get("/isGitcallback", isGitcallback)
+router.get("/userDetails", UserDetails)
 
 
 
