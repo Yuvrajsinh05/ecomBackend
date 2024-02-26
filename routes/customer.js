@@ -1,21 +1,68 @@
 const router = require("express").Router()
 const customerCartSchema = require("../Schema/customerCart")
+const FashionProducts = require("../Schema/subCategories/Cloths")
+const Mobileschema = require("../Schema/subCategories/Mobiles&Accessories")
+const computerSchema = require("../Schema/subCategories/Computers&Accessories")
 const UserSchema = require("../Schema/User")
+
+
+async function FetchForCustom(parsedIdArray){
+  const fashionProducts = await FashionProducts.find({ _id: { $in: parsedIdArray } });
+
+  // Fetch products from ComputerSchema model
+  const computerProducts = await computerSchema.find({ _id: { $in: parsedIdArray } });
+
+  // Fetch products from MobileSchema model
+  const mobileProducts = await Mobileschema.find({ _id: { $in: parsedIdArray } });
+
+  // Combine the results
+  const allProducts = [...fashionProducts, ...computerProducts, ...mobileProducts];
+  return allProducts;
+}
+const replaceProductIds = async (orderItems, Products) => {
+  const FinalItems = await Promise.all(orderItems.map(async item => {
+    const newData = Products.find(d => d._id.toString() === item.product_id.toString());
+    console.log("newData", newData);
+    const CloneKey = {
+      quantity:item.quantity
+    } // Log newData to inspect the fetched data
+    if (newData) {
+      delete item.product_id;
+      return { ...CloneKey, ...newData.toObject() }; // Use .toObject() to convert Mongoose Document to plain JavaScript object
+    }
+    return item.toObject(); // Use .toObject() to convert Mongoose Document to plain JavaScript object
+  }));
+  console.log("FinalItems", FinalItems);
+  return FinalItems;
+};
 
 
 router.get('/getcarts', async (req, res) => {
   try {
-    let qid = req.query.id
-    const data = await customerCartSchema.find({ customer_id: qid })
-    res.status(200).json({ data: data, message: "carts found" })
+    let qid = req.query.id;
+    const FoundCart = await customerCartSchema.find({ customer_id: qid });
+    const IdArray = FoundCart[0].items.map(datas => datas.product_id);
+    const Products = await FetchForCustom(IdArray);
+    // Create a copy of the cart object
+    let ClonCart = { ...FoundCart[0].toObject() };
+    
+    const newItems =await replaceProductIds(FoundCart[0].items,Products)
+    // Update ClonCart's items to ["LOCA", "Toca"]
+    ClonCart.items = [...newItems];
+    
+    console.log("Oute.....newItems",newItems)
+    res.status(200).json({ data: ClonCart, message: "Cart Found" });
   } catch (err) {
-    res.status(400).json({ message: "bhai no carts err" })
+    console.error(err); // Log any errors
+    res.status(400).json({ message: "No carts found or an error occurred" });
   }
-})
+});
+
 
 router.post('/createcart', async (req, res) => {
   const qid = req.query.id;
-  const { product_id, quantity, price, product_name } = req.body;
+  const { product_id, quantity, price, product_name  , Prodcategory ,Prodtype} = req.body;
+
 
   try {
     let data = await customerCartSchema.findOneAndUpdate(
@@ -35,7 +82,10 @@ router.post('/createcart', async (req, res) => {
               product_id,
               quantity,
               price,
-              product_name
+              product_name,
+              Prodcategory,
+              Prodtype
+
             }
           }
         },
