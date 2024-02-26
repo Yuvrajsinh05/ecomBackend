@@ -1,20 +1,73 @@
-<html>
-  <head>
-    <link href="https://fonts.googleapis.com/css?family=Nunito+Sans:400,400i,700,900&display=swap" rel="stylesheet">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Success</title>
     <style>
-      /* CSS styles omitted for brevity */
+        /* Add your custom styles here */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        p {
+            color: #666;
+        }
+
+        .info {
+            margin-top: 20px;
+            border-top: 1px solid #ccc;
+            padding-top: 20px;
+        }
+
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            color: #999;
+        }
+        .authority {
+            margin-top: 20px;
+            border-top: 1px solid #ccc;
+            padding-top: 20px;
+            font-style: italic;
+            color: #888;
+        }
+
     </style>
-  </head>
-  <body>
-    <h1><%= name %></h1>
-    <h1><%= Subject %></h1>
-    <h1><%= first_name %></h1>
-    <div class="card">
-      <div style="border-radius:200px; height:200px; width:200px; background: #F8FAF5; margin:0 auto;">
-        <i class="checkmark">✓</i>
-      </div>
-      <h1>Success</h1>
-      <p>Yoou got login yay!!!!!!</p>
+</head>
+<body>
+    <div class="container">
+        <h1>Login Confirmation!</h1>
+        <p>Hello <%= name %>,</p>
+        <p>Your login details have been confirmed:</p>
+        <div class="info">
+            <!-- <p><strong>Ip:</strong> <%= email %></p> -->
+            <p><%= first_name %></p>
+        </div>
+        <p>We hope you enjoy your experience with us!</p>
+        <div class="authority">
+            <p><em>This email was sent by Ecoco, the authorized platform owner.</em></p>
+        </div>
+        <div class="footer">
+            <p>If you have any questions, feel free to contact us.</p>
+        </div>
     </div>
-  </body>
+</body>
 </html>
+
+
