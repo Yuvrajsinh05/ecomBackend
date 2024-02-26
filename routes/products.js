@@ -237,7 +237,7 @@ function filterMobiles(computers, priceRange, brands) {
 
     if(mobile.type==filteredData.type){
       for (const range of priceRange) {
-        const [min, max] = range.split(" - ").map(Number);
+        const [min, max] = range.split(" - ")?.map(Number);
   
         if (mobilePrice >= min && mobilePrice <= max) {
           filteredData.PriceRange[range]++;
