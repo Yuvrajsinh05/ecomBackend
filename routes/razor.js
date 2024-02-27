@@ -44,7 +44,7 @@ router.post('/doPay', async (req, res) => {
     }
 
     for (const product of cartProducts) {
-      if (!product.product_id || !product.quantity || !product.price) {
+      if (!product._id || !product.quantity || !product.price) {
         return res.status(400).json({ message: "Each cart product must have product_id, quantity, price." });
       }
     }
@@ -58,7 +58,7 @@ router.post('/doPay', async (req, res) => {
       orderStatus: 'pending',
       paymentStatus: 'pending', 
       items: cartProducts?.map(product => ({
-        product_id: product.product_id,
+        product_id: product._id,
         quantity: product.quantity,
         price: product.price
       })),
@@ -102,7 +102,13 @@ router.post('/doPay', async (req, res) => {
     }
     
 
-    commonMailFunctionToAll(data  ,'orderplaced')
+
+    console.log("data.....",data)
+
+    console.log("maikllling STareed")
+
+    commonMailFunctionToAll(data  ,'orderplace')
+    console.log("maikllling Finished")
     res.status(200).json({
       success: true,
       order: razorOrder
