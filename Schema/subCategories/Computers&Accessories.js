@@ -19,3 +19,6 @@ const computerSchema = new mongoose.Schema({
 const Computer = mongoose.model('computer&accesserioes', computerSchema);
 
 module.exports = Computer;
+
+
+// check category if match then ====>  passs to type if match  ==> pass to Brand if Pass => check range and update show is it in ecom default

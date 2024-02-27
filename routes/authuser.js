@@ -1,7 +1,5 @@
 const router = require('express').Router()
 const { isEmpty, trim, isEmail, isStrong } = require('../libs/checkLib')
-const otpGenerator = require('otp-generator')
-const Counters = require('../Schema/Counters')
 const UserSchema = require('../Schema/User')
 const hashpassword = require('../libs/passwordLib').hashpassword
 const comparePasswordSync = require('../libs/passwordLib').comparePasswordSync
@@ -64,10 +62,7 @@ const register = async (req, res) => {
     if (Findhim) {
       return res.status(500).json({ status:500 ,  message: "email already exists" })
     }
-
-    console.log("startsending")
     commonMailFunctionToAll(mailUserReg, "register");
-    console.log("finishSending")
     try {
       const response = await createUser.save()
       res.status(200).json({ message: "Admin Registration successfull", data: response });
@@ -80,64 +75,6 @@ const register = async (req, res) => {
     });
   }
 };
-
-const Login = (req, res) => {
-  if (isEmpty(req.body.username) || isEmpty(req.body.password)) {
-    return res.json({
-      success: false,
-      message: "Credentials missing",
-    });
-  } else {
-    let username = trim(req.body.username.toString().toLowerCase());
-    let password = trim(req.body.password);
-    UserSchema.findOne(
-      { email: username, isVerified: true, isActive: true, isPublished: true },
-      async (err, admin) => {
-        console.log("admin", admin)
-        if (admin && comparePasswordSync(password, admin?.password)) {
-          const token = jwt.sign(
-            { userID: admin._id, type: admin.type },
-            process.env.JWT_SECRET_ACCESS_TOKEN,
-            {
-              expiresIn: "24h", // expires in 24 hours
-            }
-          );
-          // send email
-          const data = {
-            Subject: "Login SuccessFully",
-            name: username,
-            first_name: "Dear Yuvrajsinh hope you are doing well!",
-            email: "yuvrajsinh73598@gmail.com"
-          };
-          commonMailFunctionToAll(data, "loginsuccess");
-
-          try {
-            // Retrieve data from customerCartSchema based on userID
-            let getUserCarts = await customerCartSchema.find({ customer_id: admin._id });
-            
-            return res.status(200).json({
-              success: true,
-              message: "Authentication successful!",
-              token: token,
-              role: admin.type,
-              Userdata: admin,
-              CartItems :getUserCarts[0]?.items // Include user carts data in the response
-            });
-          } catch (error) {
-            console.error("Error retrieving user carts:", error);
-            return res.status(500).json({ message: "Internal server error" });
-          }
-        } else {
-          return res.status(401).json({
-            success: false,
-            message: "Invalid Credentials",
-          });
-        }
-      }
-    );
-  }
-};
-
 
 const isVerifiedRegister = async (req, res) => {
   const { email, clientOtp, password, repassword } = req.body;
@@ -181,6 +118,62 @@ const isVerifiedRegister = async (req, res) => {
   } catch (err) {
     console.error(err.message);
     return res.status(500).json({ message: "An error occurred, please try again" });
+  }
+};
+
+const Login = (req, res) => {
+  if (isEmpty(req.body.username) || isEmpty(req.body.password)) {
+    return res.json({
+      success: false,
+      message: "Credentials missing",
+    });
+  } else {
+    let username = trim(req.body.username.toString().toLowerCase());
+    let password = trim(req.body.password);
+    UserSchema.findOne(
+      { email: username, isVerified: true, isActive: true, isPublished: true },
+      async (err, admin) => {
+        if (admin && comparePasswordSync(password, admin?.password)) {
+          const token = jwt.sign(
+            { userID: admin._id, type: admin.type },
+            process.env.JWT_SECRET_ACCESS_TOKEN,
+            {
+              expiresIn: "24h", // expires in 24 hours
+            }
+          );
+          // send email
+          const data = {
+            Subject: "Login SuccessFully",
+            name: username,
+            first_name: "Dear Yuvrajsinh hope you are doing well!",
+            email: "yuvrajsinh73598@gmail.com"
+          };
+          commonMailFunctionToAll(data, "loginsuccess");
+
+          try {
+            // Retrieve data from customerCartSchema based on userID
+            let getUserCarts = await customerCartSchema.find({ customer_id: admin._id });
+            
+            return res.status(200).json({
+              success: true,
+              message: "Authentication successful!",
+              token: token,
+              role: admin.type,
+              Userdata: admin,
+              CartItems :getUserCarts[0]?.items // Include user carts data in the response
+            });
+          } catch (error) {
+            console.error("Error retrieving user carts:", error);
+            return res.status(500).json({ message: "Internal server error" });
+          }
+        } else {
+          return res.status(401).json({
+            success: false,
+            message: "Invalid Credentials",
+          });
+        }
+      }
+    );
   }
 };
 

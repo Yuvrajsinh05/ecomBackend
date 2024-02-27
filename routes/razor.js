@@ -77,8 +77,8 @@ router.post('/doPay', async (req, res) => {
       }
     });
 
-    const placeOrder =  await order.save();
-    const cartDeleted = await CustomerCart.findOneAndDelete({ customer_id: userID });
+    await order.save();
+    await CustomerCart.findOneAndDelete({ customer_id: userID });
   
 
     const termsAndConditions = [
@@ -100,15 +100,10 @@ router.post('/doPay', async (req, res) => {
       ordered : cartProducts,
       termsAndConditions:termsAndConditions
     }
-    
-
-
-    console.log("data.....",data)
-
-    console.log("maikllling STareed")
+  
 
     commonMailFunctionToAll(data  ,'orderplace')
-    console.log("maikllling Finished")
+  
     res.status(200).json({
       success: true,
       order: razorOrder

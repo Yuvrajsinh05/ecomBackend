@@ -25,14 +25,13 @@ const replaceProductIds = async (orderItems, Products) => {
     console.log("newData", newData);
     const CloneKey = {
       quantity:item.quantity
-    } // Log newData to inspect the fetched data
+    } 
     if (newData) {
       delete item.product_id;
-      return { ...CloneKey, ...newData.toObject() }; // Use .toObject() to convert Mongoose Document to plain JavaScript object
+      return { ...CloneKey, ...newData.toObject() };
     }
-    return item.toObject(); // Use .toObject() to convert Mongoose Document to plain JavaScript object
+    return item.toObject();
   }));
-  console.log("FinalItems", FinalItems);
   return FinalItems;
 };
 

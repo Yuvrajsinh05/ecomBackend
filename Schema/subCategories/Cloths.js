@@ -19,3 +19,7 @@ module.exports = FashionProducts;
 
 
 
+
+
+
+// check category if match then ====>  passs to subcategory if match  ==> pass to type if Pass==>SubType then =>type  => BRands then  => check range and update show is it in ecom default

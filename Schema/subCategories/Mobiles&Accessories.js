@@ -19,3 +19,8 @@ const mobileSchema = new mongoose.Schema({
 const Mobile = mongoose.model('Mobile', mobileSchema);
 
 module.exports = Mobile;
+
+
+
+
+// check category if match then ====>  passs to type if match  ==> pass to Brand if Pass => check range and update show is it in ecom default

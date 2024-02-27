@@ -3,14 +3,9 @@ const computerSchema = require("../Schema/subCategories/Computers&Accessories")
 const FilterSchema = require("../Schema/Filters")
 const CategoriesSchema = require("../Schema/Categories")
 const Mobileschema = require("../Schema/subCategories/Mobiles&Accessories")
-const jwt = require('jsonwebtoken')
 const FashionProducts = require("../Schema/subCategories/Cloths")
-const { query } = require("express")
+const { fetchDataObjectsOfTypeRangBrand , CreateFashionProduct ,shuffleArrayWithUniqueCheck} = require("./common")
 
-
-
-
-// computer&Accessories start here 
 
 router.get('/Electronics/Computers&Accessories', async (req, res) => {
   try {
@@ -20,9 +15,7 @@ router.get('/Electronics/Computers&Accessories', async (req, res) => {
     res.status(400).json({ message: "error found" })
   }
 })
-// computer&Accessories ends here .........
 
-// Mobileschema start here 
 router.get('/Electronics/Mobiles&Accessories', async (req, res) => {
   try {
     const collection = await Mobileschema.find()
@@ -31,26 +24,6 @@ router.get('/Electronics/Mobiles&Accessories', async (req, res) => {
     res.status(400).json({ message: "error found" })
   }
 })
-// Mobileschema ends here .........
-
-const shuffleArrayWithUniqueCheck = (array) => {
-  const uniqueSet = new Set();
-  const shuffledArray = [];
-
-  for (const item of array) {
-    if (!uniqueSet.has(item._id)) {
-      uniqueSet.add(item._id);
-      shuffledArray.push(item);
-    }
-  }
-
-  for (let i = shuffledArray.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
-  }
-
-  return shuffledArray;
-};
 
 router.get('/allProducts', async (req, res) => {
   try {
@@ -99,7 +72,6 @@ router.get('/allProducts', async (req, res) => {
   }
 });
 
-
 router.get('/fetchProductsWithIds', async (req, res) => {
   try {
     const { idArray } = req.query; // Use req.query instead of req.body for GET requests
@@ -132,8 +104,6 @@ router.get('/fetchProductsWithIds', async (req, res) => {
   }
 });
 
-
-
 router.get('/productDetails/:id', async (req, res) => {
   const prodID = req.params.id
   try {
@@ -152,7 +122,6 @@ router.get('/productDetails/:id', async (req, res) => {
   }
 })
 
-
 router.get('/Fashion/:id', async (req, res) => {
   let fid = req.params.id
   try {
@@ -163,133 +132,78 @@ router.get('/Fashion/:id', async (req, res) => {
   }
 })
 
-
-router.get('/getFilterDetails',async(req,res)=>{
-  try{
-   let Query = req.query.str
-   const Filterd =  await FilterSchema.find({type:Query})
-   res.status(200).json({data:Filterd,message:"Filtered Found"})
-  }catch(err){
-    res.status(400).json({message:"Internal Server Problem"})
+router.get('/getFilterDetails', async (req, res) => {
+  try {
+    let Query = req.query.str
+    const Filterd = await FilterSchema.find({ type: Query })
+    res.status(200).json({ data: Filterd, message: "Filtered Found" })
+  } catch (err) {
+    res.status(400).json({ message: "Internal Server Problem" })
   }
 })
 
-
-
-
-
-// Function to filter data based on type
-function filterDataByType(data, targetType) {
-  const category = data.find(category => {
-    const subCategory = category.SubCategories.find(subCategory => subCategory.type === targetType);
-    return subCategory;
-  });
-  if (category) {
-    const filteredSubCategory = category.SubCategories.find(subCategory => subCategory.type === targetType);
-    return filteredSubCategory;
-  }
-  if (!category) {
-    let ValueData;
-    const subCategory = data.find(sub => {
-      const LastObj = sub.SubCategories.find(su => {
-        const valuedata = su.SubType.find(s => {
-          return s.Name === targetType;
-        })
-        ValueData = valuedata
-        return valuedata;
-        // if (valuedata) return valuedata;
-        return;
-      })
-
-      if (ValueData) return ValueData;
-      return;
-    }
-
-    );
-
-    return ValueData;
-  }
-
-}
-
-
-function filterMobiles(computers, priceRange, brands) {
-  const filteredData = {
-    // type: "Mobiles&Accessories",
-    // type: "Computers&Accessories",
-    type: "Sunglasses",
-    Category: "Fashion",
-    PriceRange: {},
-    Brands: {}
-  };
-
-  for (const range of priceRange) {
-    filteredData.PriceRange[range] = 0;
-  }
-
-  for (const brand of brands) {
-    filteredData.Brands[brand] = 0;
-  }
-
-
-  for (const mobile of computers) {
-    const mobilePrice = parseInt(mobile.price);
-
-    if(mobile.type==filteredData.type){
-      for (const range of priceRange) {
-        const [min, max] = range.split(" - ")?.map(Number);
-  
-        if (mobilePrice >= min && mobilePrice <= max) {
-          filteredData.PriceRange[range]++;
-          break; // Mobile can belong to only one price range
-        }
-      }
-  
-      const brand = mobile.brand;
-      if (brands.includes(brand)) {
-        filteredData.Brands[brand]++;
-      }
-    }
-
-  }
-
-  return filteredData;
-}
-
-router.post('/filter', async (req, res) => {
+router.post('/createProduct', async (req, res) => {
   try {
-    // const mobiles = await Mobileschema.find();
-    // const Computers = await computerSchema.find();
-    const fashion = await FashionProducts.find();
-    const categories = await CategoriesSchema.find();
+    const { category, type, SubType, subcategory } = req.body;
 
-    // const filterData = filterDataByType(categories, "Mobiles&Accessories");
-    // const filterData = filterDataByType(categories, "Computers&Accessories");
-    const filterData = filterDataByType(categories, "Sunglasses");
-    const brands = filterData?.Brands;
-    const priceRange = filterData?.Range;
+    if (!category) {
+      return res.status(400).json({ message: "Missing Category" });
+    }
 
-    // const filteredMobiles = filterMobiles(mobiles, priceRange, brands);
-    // const filteredComputers = filterMobiles(Computers, priceRange, brands);
-    const filteredFashion = filterMobiles(fashion, priceRange, brands);
+    const foundCategory = await CategoriesSchema.findOne({ Categories: category });
+    if (!foundCategory) {
+      return res.status(400).json({ message: "Category not found." });
+    }
 
 
-    // let saveFilters  = new FilterSchema(filteredMobiles)
-    // let saveFilters  = new FilterSchema(filteredComputers)
-    let saveFilters  = new FilterSchema(filteredFashion)
+    if (!foundCategory.SubCategories[0].SubType) {
+      const possibleTypes = foundCategory.SubCategories.map(subCate => subCate.type);
+      if (!possibleTypes.includes(type)) {
+        return res.status(400).json({ message: "We are not selling this Category Type.", possibleTypes });
+      }
+    }
 
-    await saveFilters.save()
-    res.status(200).json({ data: saveFilters });
+    if (foundCategory.SubCategories[0].SubType) {
+      const subCateGoryExists = foundCategory.SubCategories.map(subcate => subcate.type)
+      if (!subCateGoryExists.includes(subcategory)) {
+       return res.status(400).json({ message: "We are not selling this subcategory Products", subCateGoryExists })
+      }
+      const CloneSubCate = foundCategory.SubCategories.find(subCategory => subCategory.type === subcategory);
+      const PossibleType = CloneSubCate.SubType.map(type => type.Name)
+
+      if (!PossibleType.includes(type)) {
+       return res.status(400).json({ message: "We are not selling this Types Products", PossibleType })
+      }
+    }
+
+
+    // return res.status(200).json({message:"sending something" , data:foundCategory})
+
+    const MatchTypeObj = fetchDataObjectsOfTypeRangBrand(subcategory, type, foundCategory)
+
+    if (category == 'Fashion') {
+      try {
+        const addFashionProduct = await CreateFashionProduct(req.body, MatchTypeObj)
+        return res.status(200).json({ message: "Product Createad", data: addFashionProduct })
+      } catch (err) {
+
+        console.log("Erer",err)
+        return res.status(400).json({ Error: "Error While Creating Fashion Product", err });
+      }
+
+    } else if (category == 'Electronics') {
+      if (type == 'Mobiles&Accessories') {
+
+      } else if (type == 'Computers&Accessories') {
+
+      }
+    }
+
   } catch (err) {
-    console.log("Error:", err);
-    res.status(400).json({ message: err });
+    console.error(err);
+    res.status(500).json({ message: "Error occurred in /admin/createProduct", err: err });
   }
 });
-
-
-
-
-
 
 
 
@@ -297,182 +211,3 @@ module.exports = router;
 
 
 
-
-
-
-
-
-
-// http://localhost:8670/admin/Fashion/Jewelry
-
-
-
-let ok = {
-  "Categories": "Fashion",
-  "SubCategories": [
-    {
-      "type": "Clothing",
-      "SubType": [
-        {
-          "Name": "Men's Clothing",
-          "Brands": [
-            "Nike",
-            "Adidas",
-            "Levi's",
-            "Ralph Lauren"
-          ],
-          "Range": [
-            "50 - 100",
-            "100 - 200",
-            "200 - 300",
-            "300 - 400",
-            "400 - 500"
-          ]
-        },
-        {
-          "Name": "Women's Clothing",
-          "Brands": [
-            "Victoria's Secret",
-            "H&M",
-            "Forever 21",
-            "Zara"
-          ],
-          "Range": [
-            "50 - 100",
-            "100 - 200",
-            "200 - 300",
-            "300 - 400",
-            "400 - 500"
-          ]
-        },
-        {
-          "Name": "Children's Clothing",
-          "Brands": [
-            "GAP Kids",
-            "Carters",
-            "OshKosh B'gosh",
-            "The Children's Place"
-          ],
-          "Range": [
-            "50 - 100",
-            "100 - 200",
-            "200 - 300",
-            "300 - 400",
-            "400 - 500"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "Shoes",
-      "SubType": [
-        {
-          "Name": "Men's Shoes",
-          "Brands": [
-            "Nike",
-            "Adidas",
-            "New Balance",
-            "Timberland"
-          ],
-          "Range": [
-            "50 - 100",
-            "100 - 200",
-            "200 - 300",
-            "300 - 400",
-            "400 - 500"
-          ]
-        },
-        {
-          "Name": "Women's Shoes",
-          "Brands": [
-            "Steve Madden",
-            "Nine West",
-            "Skechers",
-            "UGG"
-          ],
-          "Range": [
-            "50 - 100",
-            "100 - 200",
-            "200 - 300",
-            "300 - 400",
-            "400 - 500"
-          ]
-        },
-        {
-          "Name": "Children's Shoes",
-          "Brands": [
-            "Stride Rite",
-            "Skechers Kids",
-            "Nike Kids",
-            "Crocs Kids"
-          ],
-          "Range": [
-            "50 - 100",
-            "100 - 200",
-            "200 - 300",
-            "300 - 400",
-            "400 - 500"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "Accessories",
-      "SubType": [
-        {
-          "Name": "Jewelry",
-          "Brands": [
-            "Tiffany & Co.",
-            "Pandora",
-            "Swarovski",
-            "Kate Spade"
-          ],
-          "Range": [
-            "50 - 100",
-            "100 - 200",
-            "200 - 300",
-            "300 - 400",
-            "400 - 500"
-          ]
-        },
-        {
-          "Name": "Handbags",
-          "Brands": [
-            "Coach",
-            "Michael Kors",
-            "Kate Spade",
-            "Louis Vuitton"
-          ],
-          "Range": [
-            "50 - 100",
-            "100 - 200",
-            "200 - 300",
-            "300 - 400",
-            "400 - 500"
-          ]
-        },
-        {
-          "Name": "Sunglasses",
-          "Brands": [
-            "Ray-Ban",
-            "Oakley",
-            "Prada",
-            "Gucci"
-          ],
-          "Range": [
-            "50 - 100",
-            "100 - 200",
-            "200 - 300",
-            "300 - 400",
-            "400 - 500"
-          ]
-        }
-      ]
-    }
-  ],
-  "Products": [],
-  "img": "https://i.ibb.co/BC54ftF/depositphotos-33572091-stock-illustration-clothes-icons.jpg",
-  "count": {
-    "$numberInt": "41"
-  }
-}

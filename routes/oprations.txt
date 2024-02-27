@@ -12,7 +12,7 @@ router.get('/deleteFashionBrands', async (req, res) => {
   });
   
   
-  router.get('/updateFashionBrands', async (req, res) => {
+router.get('/updateFashionBrands', async (req, res) => {
     try {
       // let fashionData = await FashionProducts.find().lean(); // Use lean() to convert Mongoose document to plain JavaScript object
      let fashionData =  await FashionProducts.updateMany({}, { $unset: { "Brands": "" } }); // Use lean() to convert Mongoose document to plain JavaScript object
@@ -115,3 +115,110 @@ router.get('/deleteFashionBrands', async (req, res) => {
     }
   });
   
+// Function to filter data based on type
+function filterDataByType(data, targetType) {
+  const category = data.find(category => {
+    const subCategory = category.SubCategories.find(subCategory => subCategory.type === targetType);
+    return subCategory;
+  });
+  if (category) {
+    const filteredSubCategory = category.SubCategories.find(subCategory => subCategory.type === targetType);
+    return filteredSubCategory;
+  }
+  if (!category) {
+    let ValueData;
+    const subCategory = data.find(sub => {
+      const LastObj = sub.SubCategories.find(su => {
+        const valuedata = su.SubType.find(s => {
+          return s.Name === targetType;
+        })
+        ValueData = valuedata
+        return valuedata;
+        // if (valuedata) return valuedata;
+        return;
+      })
+
+      if (ValueData) return ValueData;
+      return;
+    }
+
+    );
+
+    return ValueData;
+  }
+
+}
+
+function filterMobiles(computers, priceRange, brands) {
+  const filteredData = {
+    // type: "Mobiles&Accessories",
+    // type: "Computers&Accessories",
+    type: "Sunglasses",
+    Category: "Fashion",
+    PriceRange: {},
+    Brands: {}
+  };
+
+  for (const range of priceRange) {
+    filteredData.PriceRange[range] = 0;
+  }
+
+  for (const brand of brands) {
+    filteredData.Brands[brand] = 0;
+  }
+
+
+  for (const mobile of computers) {
+    const mobilePrice = parseInt(mobile.price);
+
+    if(mobile.type==filteredData.type){
+      for (const range of priceRange) {
+        const [min, max] = range.split(" - ")?.map(Number);
+  
+        if (mobilePrice >= min && mobilePrice <= max) {
+          filteredData.PriceRange[range]++;
+          break; // Mobile can belong to only one price range
+        }
+      }
+  
+      const brand = mobile.brand;
+      if (brands.includes(brand)) {
+        filteredData.Brands[brand]++;
+      }
+    }
+
+  }
+
+  return filteredData;
+}
+
+router.post('/filter', async (req, res) => {
+  try {
+    // const mobiles = await Mobileschema.find();
+    // const Computers = await computerSchema.find();
+    const fashion = await FashionProducts.find();
+    const categories = await CategoriesSchema.find();
+
+    // const filterData = filterDataByType(categories, "Mobiles&Accessories");
+    // const filterData = filterDataByType(categories, "Computers&Accessories");
+    const filterData = filterDataByType(categories, "Sunglasses");
+    const brands = filterData?.Brands;
+    const priceRange = filterData?.Range;
+
+    // const filteredMobiles = filterMobiles(mobiles, priceRange, brands);
+    // const filteredComputers = filterMobiles(Computers, priceRange, brands);
+    const filteredFashion = filterMobiles(fashion, priceRange, brands);
+
+
+    // let saveFilters  = new FilterSchema(filteredMobiles)
+    // let saveFilters  = new FilterSchema(filteredComputers)
+    let saveFilters  = new FilterSchema(filteredFashion)
+
+    await saveFilters.save()
+    res.status(200).json({ data: saveFilters });
+  } catch (err) {
+    console.log("Error:", err);
+    res.status(400).json({ message: err });
+  }
+});
+
