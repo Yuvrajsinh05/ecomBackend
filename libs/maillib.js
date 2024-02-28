@@ -42,8 +42,13 @@ const commonMailFunctionToAll = async (dataToCompile, template) => {
     let Subject = dataToCompile.Subject;
     let htmlTemplate = compiled(dataToCompile);
     htmlTemplate = await juice(htmlTemplate);
-
-    return sendMail("yuvrajsinh0005@gmail.com", dataToCompile.email, Subject, htmlTemplate, dataToCompile.text || '');
+    try{
+     const SendMail = sendMail("ecocoservices@gmail.com", dataToCompile.email, Subject, htmlTemplate, dataToCompile.text || '');
+     return SendMail;
+    }catch(err){
+     console.log("Err",err)
+    }
+    
   } catch (e) {
     console.log(e);
   }
