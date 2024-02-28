@@ -4,7 +4,7 @@ const FilterSchema = require("../Schema/Filters")
 const CategoriesSchema = require("../Schema/Categories")
 const Mobileschema = require("../Schema/subCategories/Mobiles&Accessories")
 const FashionProducts = require("../Schema/subCategories/Cloths")
-const { fetchDataObjectsOfTypeRangBrand , CreateFashionProduct ,shuffleArrayWithUniqueCheck} = require("./common")
+const { fetchDataObjectsOfTypeRangBrand , CreateComputerProduct,CreateFashionProduct ,shuffleArrayWithUniqueCheck ,CreateMobileProduct} = require("./common")
 
 
 router.get('/Electronics/Computers&Accessories', async (req, res) => {
@@ -152,7 +152,7 @@ router.post('/createProduct', async (req, res) => {
 
     const foundCategory = await CategoriesSchema.findOne({ Categories: category });
     if (!foundCategory) {
-      return res.status(400).json({ message: "Category not found." });
+      return res.status(400).json({ message: "Limited For Category Fashion , Electronics , Beauty." });
     }
 
 
@@ -179,23 +179,38 @@ router.post('/createProduct', async (req, res) => {
 
     // return res.status(200).json({message:"sending something" , data:foundCategory})
 
-    const MatchTypeObj = fetchDataObjectsOfTypeRangBrand(subcategory, type, foundCategory)
+
 
     if (category == 'Fashion') {
       try {
+        const MatchTypeObj = fetchDataObjectsOfTypeRangBrand(subcategory, type, foundCategory)
         const addFashionProduct = await CreateFashionProduct(req.body, MatchTypeObj)
-        return res.status(200).json({ message: "Product Createad", data: addFashionProduct })
+        return res.status(200).json({ message: "Fashion Product Createad", data: addFashionProduct })
       } catch (err) {
-
-        console.log("Erer",err)
         return res.status(400).json({ Error: "Error While Creating Fashion Product", err });
       }
 
     } else if (category == 'Electronics') {
       if (type == 'Mobiles&Accessories') {
-
+        try {
+          const MatchTypeObj = fetchDataObjectsOfTypeRangBrand(type, false, foundCategory)
+          const addMobiles = await CreateMobileProduct(req.body, MatchTypeObj)
+          return res.status(200).json({ message: "Mobile Product Createad", data: addMobiles })
+        } catch (err) {
+          return res.status(400).json({ Error: "Error While Creating Mobile Product", err });
+        }
+  
       } else if (type == 'Computers&Accessories') {
-
+        
+        try {
+          const MatchTypeObj = fetchDataObjectsOfTypeRangBrand(type, false, foundCategory)
+          const addMobiles = await CreateComputerProduct(req.body, MatchTypeObj)
+          return res.status(200).json({ message: "Mobile Product Createad", data: addMobiles })
+        } catch (err) {
+          console.log("Err",err)
+          return res.status(400).json({ Error: "Error While Creating Cpmputer Product", err :err });
+        }
+  
       }
     }
 

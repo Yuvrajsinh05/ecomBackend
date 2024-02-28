@@ -1,7 +1,10 @@
 const FilterSchema = require("../Schema/Filters")
 const FashionProducts = require("../Schema/subCategories/Cloths")
-
+const Mobileschema = require("../Schema/subCategories/Mobiles&Accessories")
+const computerSchema = require("../Schema/subCategories/Computers&Accessories")
 const fetchDataObjectsOfTypeRangBrand = (type, subtype, foundCategory) => {
+
+    console.log("subtype", subtype)
     if (subtype) {
         const subCategory = foundCategory.SubCategories.find(sub => sub.type === type);
         if (subCategory) {
@@ -23,23 +26,23 @@ const fetchDataObjectsOfTypeRangBrand = (type, subtype, foundCategory) => {
 const shuffleArrayWithUniqueCheck = (array) => {
     const uniqueSet = new Set();
     const shuffledArray = [];
-  
+
     for (const item of array) {
-      if (!uniqueSet.has(item._id)) {
-        uniqueSet.add(item._id);
-        shuffledArray.push(item);
-      }
+        if (!uniqueSet.has(item._id)) {
+            uniqueSet.add(item._id);
+            shuffledArray.push(item);
+        }
     }
-  
+
     for (let i = shuffledArray.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
     }
-  
+
     return shuffledArray;
 };
 
-const CreateFashionProduct = async(bodyData, matchType)=> {
+const CreateFashionProduct = async (bodyData, matchType) => {
     const { name, price, image, description, category, subcategory, type, SubType, brand } = bodyData
     if (!name || !price || !image || !description || !subcategory || !category || !type || !SubType || !brand) {
         const missingFields = [];
@@ -78,28 +81,176 @@ const CreateFashionProduct = async(bodyData, matchType)=> {
             [`PriceRange.${priceRangeToUpdate}`]: 1
         }
     };
-    const options = { new: true, upsert: true }; // Create the document if it doesn't exist
-    const updatedDocument = await FilterSchema.findOneAndUpdate(filter, update, options);
+    const options = { new: true, upsert: true }; // Create the document if it doesn't exist 
     const newProduct = new FashionProducts({
-        name: name,
+        name:name,
         price: price,
         image: image,
-        description: description,
+        description:description,
         category: category,
-        subcategory: subcategory,
-        type: type,
-        SubType: SubType,
-        brand: brand
-    });
-
-
-
+        subcategory:subcategory,
+        type:type,
+        SubType:SubType,
+        brand:brand
+});
 
     // Save the new product to the database
-    await newProduct.save();
+    const saved = await newProduct.save();
 
+    if (saved) {
+        await FilterSchema.findOneAndUpdate(filter, update, options);
+    }
+}
+
+const CreateMobileProduct = async (bodyData, matchType) => {
+    try {
+        const { brand, model, price, screen, camera, battery, memory, storage, weight, description, imageUrl, type, category } = bodyData;
+        if (!brand || !model || !price || !screen || !camera || !battery || !memory || !storage || !weight || !description || !imageUrl) {
+            const missingFields = [];
+            if (!brand) missingFields.push("brand");
+            if (!model) missingFields.push("model");
+            if (!price) missingFields.push("price");
+            if (!screen) missingFields.push("screen");
+            if (!camera) missingFields.push("camera");
+            if (!battery) missingFields.push("battery");
+            if (!memory) missingFields.push("memory");
+            if (!storage) missingFields.push("storage");
+            if (!weight) missingFields.push("weight");
+            if (!description) missingFields.push("description");
+            if (!imageUrl) missingFields.push("imageUrl");
+            throw { status: 400, message: `The following fields are mandatory: ${missingFields.join(", ")}.` };
+        }
+
+
+        console.log("matchType", matchType, brand)
+        if (!matchType?.Brands.includes(brand)) {
+            throw { status: 400, message: "We Are Still Limited With Some Brands", PossibleBrands: matchType?.Brands };
+        }
+
+        // Define price ranges
+        const priceRanges = matchType?.Range.map(range => range.split(' - ').map(Number));
+        let priceRangeToUpdate = null;
+        for (const range of priceRanges) {
+            const [min, max] = range;
+            if (price >= min && price <= max) {
+                priceRangeToUpdate = range.join(' - ');
+                break;
+            }
+        }
+        if (!priceRangeToUpdate) {
+            throw { status: 400, message: "Price is not within any allowed range." };
+        }
+
+        const filter = { Category: category, type: type };
+        const update = {
+            $inc: {
+                [`Brands.${brand}`]: 1,
+                [`PriceRange.${priceRangeToUpdate}`]: 1
+            }
+        };
+        const options = { new: true, upsert: true }; // Create the document if it doesn't exist
+
+
+        const newProduct = new Mobileschema({
+            brand: brand,
+            model: model,
+            price: price,
+            screen: screen,
+            camera: camera,
+            battery: battery,
+            memory: memory,
+            storage: storage,
+            weight: weight,
+            description: description,
+            imageUrl: imageUrl,
+            type: type,
+            category: category
+        });
+
+        // Save the new product to the database
+        const saved = await newProduct.save();
+        if (saved) {
+            await FilterSchema.findOneAndUpdate(filter, update, options);
+        }
+    } catch (err) {
+        console.log("err", err)
+        throw { status: 500, message: "Error Found While Creating Mobile Product", err };
+    }
 }
 
 
 
-module.exports = { fetchDataObjectsOfTypeRangBrand ,shuffleArrayWithUniqueCheck , CreateFashionProduct}
+const CreateComputerProduct = async (bodyData, matchType) => {
+    try {
+        const { brand, model, price, processor, memory, storage, graphicsCard, displaySize, weight, description, imageUrl, type, category } = bodyData;
+        if (!brand || !model || !price || !processor || !memory || !storage || !graphicsCard || !displaySize || !weight || !description || !imageUrl) {
+            const missingFields = [];
+            if (!brand) missingFields.push("brand");
+            if (!model) missingFields.push("model");
+            if (!price) missingFields.push("price");
+            if (!processor) missingFields.push("processor");
+            if (!memory) missingFields.push("memory");
+            if (!storage) missingFields.push("storage");
+            if (!graphicsCard) missingFields.push("graphicsCard");
+            if (!displaySize) missingFields.push("displaySize");
+            if (!weight) missingFields.push("weight");
+            if (!description) missingFields.push("description");
+            if (!imageUrl) missingFields.push("imageUrl");
+            throw { status: 400, message: `The following fields are mandatory: ${missingFields.join(", ")}.` };
+        }
+
+        if (!matchType?.Brands.includes(brand)) {
+            throw { status: 400, message: "We Are Still Limited With Some Brands", PossibleBrands: matchType?.Brands };
+        }
+
+        const priceRanges = matchType?.Range.map(range => range.split(' - ').map(Number));
+        let priceRangeToUpdate = null;
+        for (const range of priceRanges) {
+            const [min, max] = range;
+            if (price >= min && price <= max) {
+                priceRangeToUpdate = range.join(' - ');
+                break;
+            }
+        }
+        if (!priceRangeToUpdate) {
+            throw { status: 400, message: "Price is not within any allowed range." };
+        }
+
+        const filter = { Category: category, type: type };
+        const update = {
+            $inc: {
+                [`Brands.${brand}`]: 1,
+                [`PriceRange.${priceRangeToUpdate}`]: 1
+            }
+        };
+        const options = { new: true, upsert: true };
+
+        const newProduct = new computerSchema({
+            brand: brand,
+            model: model,
+            price: price,
+            processor: processor,
+            memory: memory,
+            storage: storage,
+            graphicsCard: graphicsCard,
+            displaySize: displaySize,
+            weight: weight,
+            description: description,
+            imageUrl: imageUrl,
+            type: type,
+            category: category
+        });
+
+        const savedProduct = await newProduct.save();
+        if (savedProduct) {
+            await FilterSchema.findOneAndUpdate(filter, update, options);
+        }
+    } catch (err) {
+        console.log("err", err);
+        throw { status: 500, message: "Error Found While Creating Computer Product", err };
+    }
+}
+
+
+
+module.exports = { fetchDataObjectsOfTypeRangBrand, shuffleArrayWithUniqueCheck, CreateFashionProduct, CreateMobileProduct ,CreateComputerProduct}

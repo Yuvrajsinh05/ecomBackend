@@ -9,7 +9,7 @@ const computerSchema = new mongoose.Schema({
   storage: { type: String, required: true },
   graphicsCard: { type: String },
   displaySize: { type: String },
-  weight: { type: Number },
+  weight: { type: String },
   description: { type: String },
   imageUrl: { type: String },
   type:{type : String},
