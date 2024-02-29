@@ -226,7 +226,7 @@ const createProduct = async (req, res) => {
 async function chatWithOpenAiModal(promt) {
   console.log("promt", promt)
   // return;
-  const ChatWithAi = new openAi({ apiKey: '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' })
+  const ChatWithAi = new openAi({ apiKey: process.env.OPENAI })
   const completion = await ChatWithAi.chat.completions.create({
     messages: [{ role: "system", content: promt }],
     model: "gpt-3.5-turbo",
@@ -237,22 +237,22 @@ async function chatWithOpenAiModal(promt) {
 
 async function GenrateImageForProduct(word) {
   try {
-    const client = new createClient('W5chr1iVcuJfjELFCwwJqIx1DpaCUWoeynba0QBF9j8UyCp6oOYYmwKZ');
+    const client = new createClient(process.env.PEXELKEY);
     const query = word;
     // Search for photos based on the query
     const generateImage = await client.photos.search({ query, per_page: 1 });
     // If no photos are found, throw an error with a specific message
-    if (!generateImage || !generateImage.photos || generateImage.photos.length === 0) {
+    if (!generateImage || !generateImage?.photos || generateImage.photos.length === 0) {
       throw new Error('No images found for the given query');
     }
     // Extract the URL of the first photo
-    const WebPageImage = generateImage.photos[0].src.original;
+    const WebPageImage = generateImage.photos[0]?.src?.original;
     return WebPageImage;
   } catch (err) {
     // Log the error for debugging purposes
     console.error('Error in fetching image:', err.message);
     // Throw an error with a specific message
-    throw new Error('Failed to fetch image. Please try again later.'); // Generic error message
+    throw {status:400 , message:"Failed While Generating Image"} // Generic error message
   }
 }
 
