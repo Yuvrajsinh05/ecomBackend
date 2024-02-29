@@ -4,24 +4,28 @@ const FilterSchema = require("../Schema/Filters")
 const CategoriesSchema = require("../Schema/Categories")
 const Mobileschema = require("../Schema/subCategories/Mobiles&Accessories")
 const FashionProducts = require("../Schema/subCategories/Cloths")
-const { fetchDataObjectsOfTypeRangBrand , CreateComputerProduct,CreateFashionProduct ,shuffleArrayWithUniqueCheck ,CreateMobileProduct} = require("./common")
+const { createClient } = require('pexels')
+const cheerio = require('cheerio')
+const axios = require('axios')
+const openAi = require('openai')
+const { fetchDataObjectsOfTypeRangBrand, CreateComputerProduct, CreateFashionProduct, shuffleArrayWithUniqueCheck, CreateMobileProduct } = require("./common")
 
 
 router.get('/Electronics/Computers&Accessories', async (req, res) => {
   try {
     const collection = await computerSchema.find()
-    res.status(200).json({ data: collection, message: "computer&Accessories data found" })
+    return res.status(200).json({ data: collection, message: "computer&Accessories data found" })
   } catch (err) {
-    res.status(400).json({ message: "error found" })
+    return res.status(400).json({ message: "error found" })
   }
 })
 
 router.get('/Electronics/Mobiles&Accessories', async (req, res) => {
   try {
     const collection = await Mobileschema.find()
-    res.status(200).json({ data: collection, message: "Mobiles data found" })
+    return res.status(200).json({ data: collection, message: "Mobiles data found" })
   } catch (err) {
-    res.status(400).json({ message: "error found" })
+    return res.status(400).json({ message: "error found" })
   }
 })
 
@@ -59,16 +63,16 @@ router.get('/allProducts', async (req, res) => {
     const shuffledAndUniqueFashionDetail = shuffleArrayWithUniqueCheck(fashionDetail);
 
     if (shuffledAndUniqueFashionDetail.length > 0) {
-      res.status(200).json({
+      return res.status(200).json({
         data: shuffledAndUniqueFashionDetail,
         count: shuffledAndUniqueFashionDetail.length,
         message: "Details fetched for all products"
       });
     } else {
-      res.status(404).json({ message: "No details found for the given ID" });
+      return res.status(404).json({ message: "No details found for the given ID" });
     }
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    return res.status(400).json({ message: err.message });
   }
 });
 
@@ -93,14 +97,14 @@ router.get('/fetchProductsWithIds', async (req, res) => {
 
     // Combine the results
     const allProducts = [...fashionProducts, ...computerProducts, ...mobileProducts];
-    res.status(200).json({
+    return res.status(200).json({
       data: allProducts,
       count: allProducts.length,
       message: "Details fetched for all products"
     });
   } catch (error) {
     console.error(error);
-    res.status(500).send('Internal Server Error');
+    return res.status(500).send('Internal Server Error');
   }
 });
 
@@ -116,9 +120,9 @@ router.get('/productDetails/:id', async (req, res) => {
       }
       return res.status(200).json({ data: detail1, message: "Details for Computers" })
     }
-    res.status(200).json({ data: detail, message: "Details fetched" })
+    return res.status(200).json({ data: detail, message: "Details fetched" })
   } catch (err) {
-    res.status(400).json({ message: err })
+    return res.status(400).json({ message: err })
   }
 })
 
@@ -126,9 +130,9 @@ router.get('/Fashion/:id', async (req, res) => {
   let fid = req.params.id
   try {
     const datacol = await FashionProducts.find({ type: fid })
-    res.status(200).json({ data: datacol, message: "found cloths" })
+    return res.status(200).json({ data: datacol, message: "found cloths" })
   } catch (Err) {
-    res.status(400).json({ message: "error found" })
+    return res.status(400).json({ message: "error found" })
   }
 })
 
@@ -136,13 +140,15 @@ router.get('/getFilterDetails', async (req, res) => {
   try {
     let Query = req.query.str
     const Filterd = await FilterSchema.find({ type: Query })
-    res.status(200).json({ data: Filterd, message: "Filtered Found" })
+    return res.status(200).json({ data: Filterd, message: "Filtered Found" })
   } catch (err) {
-    res.status(400).json({ message: "Internal Server Problem" })
+    return res.status(400).json({ message: "Internal Server Problem" })
   }
 })
 
-router.post('/createProduct', async (req, res) => {
+
+
+const createProduct = async (req, res) => {
   try {
     const { category, type, SubType, subcategory } = req.body;
 
@@ -166,26 +172,22 @@ router.post('/createProduct', async (req, res) => {
     if (foundCategory.SubCategories[0].SubType) {
       const subCateGoryExists = foundCategory.SubCategories.map(subcate => subcate.type)
       if (!subCateGoryExists.includes(subcategory)) {
-       return res.status(400).json({ message: "We are not selling this subcategory Products", subCateGoryExists })
+        return res.status(400).json({ message: "We are not selling this subcategory Products", subCateGoryExists })
       }
       const CloneSubCate = foundCategory.SubCategories.find(subCategory => subCategory.type === subcategory);
       const PossibleType = CloneSubCate.SubType.map(type => type.Name)
 
       if (!PossibleType.includes(type)) {
-       return res.status(400).json({ message: "We are not selling this Types Products", PossibleType })
+        return res.status(400).json({ message: "We are not selling this Types Products", PossibleType })
       }
     }
-
-
-    // return res.status(200).json({message:"sending something" , data:foundCategory})
-
-
 
     if (category == 'Fashion') {
       try {
         const MatchTypeObj = fetchDataObjectsOfTypeRangBrand(subcategory, type, foundCategory)
         const addFashionProduct = await CreateFashionProduct(req.body, MatchTypeObj)
-        return res.status(200).json({ message: "Fashion Product Createad", data: addFashionProduct })
+        console.log("addFashionProduct",MatchTypeObj)
+        return res.status(200).json({ message: "Fashion Product Createad", data: MatchTypeObj })
       } catch (err) {
         return res.status(400).json({ Error: "Error While Creating Fashion Product", err });
       }
@@ -199,29 +201,134 @@ router.post('/createProduct', async (req, res) => {
         } catch (err) {
           return res.status(400).json({ Error: "Error While Creating Mobile Product", err });
         }
-  
+
       } else if (type == 'Computers&Accessories') {
-        
+
         try {
           const MatchTypeObj = fetchDataObjectsOfTypeRangBrand(type, false, foundCategory)
           const addMobiles = await CreateComputerProduct(req.body, MatchTypeObj)
           return res.status(200).json({ message: "Mobile Product Createad", data: addMobiles })
         } catch (err) {
-          console.log("Err",err)
-          return res.status(400).json({ Error: "Error While Creating Cpmputer Product", err :err });
+          console.log("Err", err)
+          return res.status(400).json({ Error: "Error While Creating Cpmputer Product", err: err });
         }
-  
+
       }
     }
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Error occurred in /admin/createProduct", err: err });
+    return res.status(500).json({ message: "Error occurred in /admin/createProduct", err: err });
   }
-});
+}
+
+
+async function chatWithOpenAiModal(promt) {
+  console.log("promt", promt)
+  // return;
+  const ChatWithAi = new openAi({ apiKey: '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' })
+  const completion = await ChatWithAi.chat.completions.create({
+    messages: [{ role: "system", content: promt }],
+    model: "gpt-3.5-turbo",
+  });
+  return await completion.choices[0].message.content;
+}
+
+
+async function GenrateImageForProduct(word) {
+  try {
+    const client = new createClient('W5chr1iVcuJfjELFCwwJqIx1DpaCUWoeynba0QBF9j8UyCp6oOYYmwKZ');
+    const query = word;
+    // Search for photos based on the query
+    const generateImage = await client.photos.search({ query, per_page: 1 });
+    // If no photos are found, throw an error with a specific message
+    if (!generateImage || !generateImage.photos || generateImage.photos.length === 0) {
+      throw new Error('No images found for the given query');
+    }
+    // Extract the URL of the first photo
+    const WebPageImage = generateImage.photos[0].src.original;
+    return WebPageImage;
+  } catch (err) {
+    // Log the error for debugging purposes
+    console.error('Error in fetching image:', err.message);
+    // Throw an error with a specific message
+    throw new Error('Failed to fetch image. Please try again later.'); // Generic error message
+  }
+}
 
 
 
+function getRandomItemFromArray(array) {
+  return array[Math.floor(Math.random() * array.length)];
+}
+
+
+
+async function generateRandomProductFashion(reference) {
+  try {
+    // Get random category
+    const category = reference.Categories;
+
+    // Get random subcategory
+    const subcategoryObj = getRandomItemFromArray(reference.SubCategories);
+    const subcategory = subcategoryObj.type;
+
+    // Get random type
+    const typeObj = getRandomItemFromArray(subcategoryObj.SubType);
+    const type = typeObj.Name;
+
+    // Get random brand
+    const brand = getRandomItemFromArray(typeObj.Brands);
+
+    // Generate random price
+    const price = Math.floor(Math.random() * 501); // Generates a random number between 0 and 500
+
+    const GenerateSubType = await chatWithOpenAiModal(`Generate subtype for ${category} ${subcategory} ${type} in string only word`)
+    const GenerateNameProduct = await chatWithOpenAiModal(`Generate Product name for ${category} ${subcategory} ${type} ${GenerateSubType} ${brand} ${price} in string only word`)
+    const GenerateNameProductDescription = await chatWithOpenAiModal(`Generate Product description for ${category} ${subcategory} ${type} ${GenerateSubType} ${GenerateNameProduct} ${brand} ${price} in string  words only give description no other text strict Output`)
+    const GenerateRandomWordForImage = await chatWithOpenAiModal(`Generate Product String Word TO Fetch A Image  Based on "${subcategory}" "${type}" "${GenerateNameProduct}" "${brand}"  only a Word No Other Text Strict Output Not Defficult Give Simple Word that is possible to get image with it very very simple we can find photos of that word`)
+
+    console.log("images generattion stars with Word",GenerateRandomWordForImage)
+    const GenerateImage = await GenrateImageForProduct(GenerateRandomWordForImage.trim().replace(/"/g, ''))
+    console.log("images generattion ends...")
+    // Construct and return the product schema
+    return {
+      category: category,
+      subcategory: subcategory,
+      SubType: type,
+      type: type,
+      brand: brand,
+      price: price,
+      name: GenerateNameProduct,
+      description: GenerateNameProductDescription,
+      image: GenerateImage
+    };
+  } catch (err) {
+    console.log("Err creating fashion", err)
+    throw err;
+  }
+}
+
+
+
+router.get('/autoCreateProduct', async (req, res) => {
+  try {
+    const createFashionProduct = await CategoriesSchema.findOne({ Categories: "Fashion" })
+    const getProduct = await generateRandomProductFashion(createFashionProduct)
+    const reqWithProductData = {
+      body: getProduct // Set getProduct as the body of the request
+    };
+
+    await createProduct(reqWithProductData, res);
+
+  } catch (err) {
+    console.log("Err", err)
+    return res.status(500).json({ message: "Err Found While Auto Addinig Product" ,err })
+  }
+})
+
+
+router.post('/createProduct', createProduct);
 module.exports = router;
 
 

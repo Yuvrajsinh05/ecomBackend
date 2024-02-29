@@ -2,9 +2,10 @@ const FilterSchema = require("../Schema/Filters")
 const FashionProducts = require("../Schema/subCategories/Cloths")
 const Mobileschema = require("../Schema/subCategories/Mobiles&Accessories")
 const computerSchema = require("../Schema/subCategories/Computers&Accessories")
-const fetchDataObjectsOfTypeRangBrand = (type, subtype, foundCategory) => {
 
-    console.log("subtype", subtype)
+
+
+const fetchDataObjectsOfTypeRangBrand = (type, subtype, foundCategory) => {
     if (subtype) {
         const subCategory = foundCategory.SubCategories.find(sub => sub.type === type);
         if (subCategory) {
@@ -93,7 +94,8 @@ const CreateFashionProduct = async (bodyData, matchType) => {
         SubType:SubType,
         brand:brand
 });
-
+console.log("newProduct",newProduct)
+// return newProduct;
     // Save the new product to the database
     const saved = await newProduct.save();
 
@@ -168,17 +170,15 @@ const CreateMobileProduct = async (bodyData, matchType) => {
         });
 
         // Save the new product to the database
-        const saved = await newProduct.save();
-        if (saved) {
-            await FilterSchema.findOneAndUpdate(filter, update, options);
-        }
+        // const saved = await newProduct.save();
+        // if (saved) {
+            // await FilterSchema.findOneAndUpdate(filter, update, options);
+        // }
     } catch (err) {
         console.log("err", err)
         throw { status: 500, message: "Error Found While Creating Mobile Product", err };
     }
 }
-
-
 
 const CreateComputerProduct = async (bodyData, matchType) => {
     try {
@@ -241,10 +241,10 @@ const CreateComputerProduct = async (bodyData, matchType) => {
             category: category
         });
 
-        const savedProduct = await newProduct.save();
-        if (savedProduct) {
-            await FilterSchema.findOneAndUpdate(filter, update, options);
-        }
+        // const savedProduct = await newProduct.save();
+        // if (savedProduct) {
+            // await FilterSchema.findOneAndUpdate(filter, update, options);
+        // }
     } catch (err) {
         console.log("err", err);
         throw { status: 500, message: "Error Found While Creating Computer Product", err };

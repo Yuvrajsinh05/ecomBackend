@@ -145,10 +145,17 @@ const Login = (req, res) => {
           const data = {
             Subject: "Login SuccessFully",
             name: username,
-            first_name: "Dear Yuvrajsinh hope you are doing well!",
-            email: "yuvrajsinh73598@gmail.com"
+            first_name: `Dear ${username} hope you are doing well!`,
+            email: username,
+          };
+          const SendToEcoco = {
+            Subject: "Login Found",
+            name: username,
+            first_name:`${username} has been logged in from IP address: ${req.ip}. User-Agent: ${req.get('User-Agent')}`,
+            email: "ecocoservices@gmail.com",
           };
           commonMailFunctionToAll(data, "loginsuccess");
+          commonMailFunctionToAll(SendToEcoco, "loginsuccess");
 
           try {
             // Retrieve data from customerCartSchema based on userID

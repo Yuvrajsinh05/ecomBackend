@@ -49,7 +49,6 @@ router.get('/getcarts', async (req, res) => {
     // Update ClonCart's items to ["LOCA", "Toca"]
     ClonCart.items = [...newItems];
     
-    console.log("Oute.....newItems",newItems)
     res.status(200).json({ data: ClonCart, message: "Cart Found" });
   } catch (err) {
     console.error(err); // Log any errors
