@@ -3,6 +3,7 @@ const ProductsRoutes = require("./products")
 const AuthUser = require("./authuser")
 const customer = require("./customer")
 const PaymentGateway = require('./razor')
+const ChatBotSocket = require('./chatbot')
 
 
 module.exports= {
@@ -10,5 +11,6 @@ module.exports= {
     ProductsRoutes,
     AuthUser,
     customer,
-    PaymentGateway
+    PaymentGateway,
+    ChatBotSocket
 }

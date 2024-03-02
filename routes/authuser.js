@@ -57,6 +57,7 @@ const register = async (req, res) => {
       PhoneNum: phone
     };
 
+    console.log("mailmuser",mailUserReg)
 
     const Findhim = await UserSchema.findOne({ email: UserEmail })
     if (Findhim) {

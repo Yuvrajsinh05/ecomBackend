@@ -4,9 +4,10 @@ const FashionProducts = require("../Schema/subCategories/Cloths")
 const Mobileschema = require("../Schema/subCategories/Mobiles&Accessories")
 const computerSchema = require("../Schema/subCategories/Computers&Accessories")
 const UserSchema = require("../Schema/User")
+const orderSchema = require("../Schema/Order")
 
 
-async function FetchForCustom(parsedIdArray){
+async function FetchForCustom(parsedIdArray) {
   const fashionProducts = await FashionProducts.find({ _id: { $in: parsedIdArray } });
 
   // Fetch products from ComputerSchema model
@@ -24,8 +25,8 @@ const replaceProductIds = async (orderItems, Products) => {
     const newData = Products.find(d => d._id.toString() === item.product_id.toString());
     console.log("newData", newData);
     const CloneKey = {
-      quantity:item.quantity
-    } 
+      quantity: item.quantity
+    }
     if (newData) {
       delete item.product_id;
       return { ...CloneKey, ...newData.toObject() };
@@ -44,11 +45,11 @@ router.get('/getcarts', async (req, res) => {
     const Products = await FetchForCustom(IdArray);
     // Create a copy of the cart object
     let ClonCart = { ...FoundCart[0].toObject() };
-    
-    const newItems =await replaceProductIds(FoundCart[0].items,Products)
+
+    const newItems = await replaceProductIds(FoundCart[0].items, Products)
     // Update ClonCart's items to ["LOCA", "Toca"]
     ClonCart.items = [...newItems];
-    
+
     res.status(200).json({ data: ClonCart, message: "Cart Found" });
   } catch (err) {
     console.error(err); // Log any errors
@@ -59,7 +60,7 @@ router.get('/getcarts', async (req, res) => {
 
 router.post('/createcart', async (req, res) => {
   const qid = req.query.id;
-  const { product_id, quantity, price, product_name  , Prodcategory ,Prodtype} = req.body;
+  const { product_id, quantity, price, product_name, Prodcategory, Prodtype } = req.body;
 
 
   try {
@@ -101,7 +102,7 @@ router.post('/createcart', async (req, res) => {
 
 router.post('/updatequantity', async (req, res) => {
   // const qid = req.query.id;
-  const { product_id, quantity  , CustomerId} = req.body;
+  const { product_id, quantity, CustomerId } = req.body;
 
   try {
     const data = await customerCartSchema.findOneAndUpdate(
@@ -167,7 +168,7 @@ router.post('/savedProducts', async (req, res) => {
       { savedProducts },
       { new: true } // This option ensures that the updated document is returned
     );
-  
+
     res.status(200).json({ message: 'Operation successful', savedProducts: stored.savedProducts });
   } catch (err) {
     console.error(err);
@@ -175,4 +176,14 @@ router.post('/savedProducts', async (req, res) => {
   }
 });
 
+router.get('/orders', async (req, res) => {
+  try {
+    const { userID }  = req.customer
+    const orders = await orderSchema.find({ customer_id: userID });
+    return res.status(200).json({ data: orders, message: "Order Fetched Succesfully" })
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
 module.exports = router;
