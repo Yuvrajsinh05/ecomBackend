@@ -2,7 +2,7 @@ const FilterSchema = require("../Schema/Filters")
 const FashionProducts = require("../Schema/subCategories/Cloths")
 const Mobileschema = require("../Schema/subCategories/Mobiles&Accessories")
 const computerSchema = require("../Schema/subCategories/Computers&Accessories")
-
+const CategoriesSchema = require('../Schema/Categories')
 
 
 const fetchDataObjectsOfTypeRangBrand = (type, subtype, foundCategory) => {
@@ -82,7 +82,7 @@ const CreateFashionProduct = async (bodyData, matchType) => {
             [`PriceRange.${priceRangeToUpdate}`]: 1
         }
     };
-    const options = { new: true, upsert: true }; // Create the document if it doesn't exist 
+    const options = { new: true, upsert: true }; 
     const newProduct = new FashionProducts({
         name:name,
         price: price,
@@ -94,13 +94,13 @@ const CreateFashionProduct = async (bodyData, matchType) => {
         SubType:SubType,
         brand:brand
 });
-console.log("newProduct",newProduct)
-// return newProduct;
-    // Save the new product to the database
-    const saved = await newProduct.save();
 
+
+
+    const saved = await newProduct.save();
     if (saved) {
         await FilterSchema.findOneAndUpdate(filter, update, options);
+        await CategoriesSchema.findOneAndUpdate({ Categories: "Fashion" }, { $inc: { count: 1 } }, { new: true });
     }
 }
 
@@ -170,10 +170,10 @@ const CreateMobileProduct = async (bodyData, matchType) => {
         });
 
         // Save the new product to the database
-        // const saved = await newProduct.save();
-        // if (saved) {
-            // await FilterSchema.findOneAndUpdate(filter, update, options);
-        // }
+        const saved = await newProduct.save();
+        if (saved) {
+            await FilterSchema.findOneAndUpdate(filter, update, options);
+        }
     } catch (err) {
         console.log("err", err)
         throw { status: 500, message: "Error Found While Creating Mobile Product", err };
