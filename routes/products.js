@@ -5,8 +5,6 @@ const CategoriesSchema = require("../Schema/Categories")
 const Mobileschema = require("../Schema/subCategories/Mobiles&Accessories")
 const FashionProducts = require("../Schema/subCategories/Cloths")
 const { createClient } = require('pexels')
-const cheerio = require('cheerio')
-const axios = require('axios')
 const openAi = require('openai')
 const { fetchDataObjectsOfTypeRangBrand, CreateComputerProduct, CreateFashionProduct, shuffleArrayWithUniqueCheck, CreateMobileProduct } = require("./common")
 
@@ -146,6 +144,66 @@ router.get('/getFilterDetails', async (req, res) => {
   }
 })
 
+router.get('/autoCreateProduct', async (req, res) => {
+  try {
+    const createFashionProduct = await CategoriesSchema.findOne({ Categories: "Fashion" })
+    const getProduct = await generateRandomProductFashion(createFashionProduct)
+    const reqWithProductData = {
+      body: getProduct // Set getProduct as the body of the request
+    };
+
+    await createProduct(reqWithProductData, res);
+
+  } catch (err) {
+    console.log("Err", err)
+    return res.status(500).json({ message: "Err Found While Auto Addinig Product", err })
+  }
+})
+
+router.post('/filterProducts', async (req, res) => {
+  try {
+    const { category, subCategory, price, brands } = req.body;
+
+    // Prepare brand filter
+    const brandFilter = Array.isArray(brands) && brands.length > 0 ? { brand: { $in: brands } } : {};
+
+    // Prepare price range filter
+    const priceFilter = price && price.max && price.min && price.max !== 1.7976931348623157e+308 && price.min !== 5e-324 ?
+      { price: { $gte: price.min, $lte: price.max } } : {};
+      const bool = price.max==Number.MIN_VALUE && price.min==Number.MAX_VALUE
+    // Construct the query
+
+    let query ;
+
+    if(bool){
+       query = { 
+        category, 
+        type: subCategory, 
+        ...brandFilter, 
+      };
+    }else{
+      query= { 
+        category, 
+        type: subCategory, 
+        ...brandFilter, 
+        ...priceFilter 
+      };
+    }
+
+    console.log("query......",query)
+    // Query the respective collections
+    const FashionProduct = await FashionProducts.find(query);
+    const ComputerProducts = await computerSchema.find(query);
+    const MobilesProducts = await Mobileschema.find(query);
+    
+    // Combine the results and send the response
+    const filteredProducts = [...FashionProduct, ...ComputerProducts, ...MobilesProducts];
+    return res.status(200).json({ data: filteredProducts, message: "Filter Found" });
+  } catch (err) {
+    return res.status(400).json({ message: "Error Found While Filter Products" });
+  }
+});
+
 
 
 const createProduct = async (req, res) => {
@@ -186,7 +244,6 @@ const createProduct = async (req, res) => {
       try {
         const MatchTypeObj = fetchDataObjectsOfTypeRangBrand(subcategory, type, foundCategory)
         const addFashionProduct = await CreateFashionProduct(req.body, MatchTypeObj)
-        console.log("addFashionProduct",MatchTypeObj)
         return res.status(200).json({ message: "Fashion Product Createad", data: MatchTypeObj })
       } catch (err) {
         return res.status(400).json({ Error: "Error While Creating Fashion Product", err });
@@ -252,7 +309,7 @@ async function GenrateImageForProduct(word) {
     // Log the error for debugging purposes
     console.error('Error in fetching image:', err.message);
     // Throw an error with a specific message
-    throw {status:400 , message:"Failed While Generating Image"} // Generic error message
+    throw { status: 400, message: "Failed While Generating Image" } // Generic error message
   }
 }
 
@@ -288,7 +345,7 @@ async function generateRandomProductFashion(reference) {
     const GenerateNameProductDescription = await chatWithOpenAiModal(`Generate Product description for ${category} ${subcategory} ${type} ${GenerateSubType} ${GenerateNameProduct} ${brand} ${price} in string  words only give description no other text strict Output`)
     const GenerateRandomWordForImage = await chatWithOpenAiModal(`Generate Product String Word TO Fetch A Image  Based on "${subcategory}" "${type}" "${GenerateNameProduct}" "${brand}"  only a Word No Other Text Strict Output Not Defficult Give Simple Word that is possible to get image with it very very simple we can find photos of that word`)
 
-    console.log("images generattion stars with Word",GenerateRandomWordForImage)
+    console.log("images generattion stars with Word", GenerateRandomWordForImage)
     const GenerateImage = await GenrateImageForProduct(GenerateRandomWordForImage.trim().replace(/"/g, ''))
     console.log("images generattion ends...")
     // Construct and return the product schema
@@ -311,21 +368,7 @@ async function generateRandomProductFashion(reference) {
 
 
 
-router.get('/autoCreateProduct', async (req, res) => {
-  try {
-    const createFashionProduct = await CategoriesSchema.findOne({ Categories: "Fashion" })
-    const getProduct = await generateRandomProductFashion(createFashionProduct)
-    const reqWithProductData = {
-      body: getProduct // Set getProduct as the body of the request
-    };
 
-    await createProduct(reqWithProductData, res);
-
-  } catch (err) {
-    console.log("Err", err)
-    return res.status(500).json({ message: "Err Found While Auto Addinig Product" ,err })
-  }
-})
 
 
 router.post('/createProduct', createProduct);
