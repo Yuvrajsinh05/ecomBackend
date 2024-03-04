@@ -289,15 +289,7 @@ const isGitcallback = async (req, res) => {
     if (!name) {
       return res.status(400).json({ message: "Name not found in GitHub profile." });
     }
-    const data = {
-      Subject: "Login Successfully",
-      name: name,
-      first_name: `Dear ${name}, hope you are doing well!`,
-      email: email,
-  
-    };
 
-    commonMailFunctionToAll(data, "loginsuccess");
 
     // You can add additional checks for email verification if required
     // For example, check if the email is verified by GitHub
@@ -308,11 +300,10 @@ const isGitcallback = async (req, res) => {
     if (!userfound) {
       // User not found, create a new user
       const dataRegister = {
-        // Adjust fields as needed based on your schema
         email,
         Name: name,
         Image: avatar_url,
-        isVerified: true, // GitHub doesn't provide email verification status, assume it's true
+        isVerified: true,
       };
 
       const loguser = new UserSchema(dataRegister);
@@ -327,6 +318,17 @@ const isGitcallback = async (req, res) => {
         expiresIn: "24h", // expires in 24 hours
       }
     );
+
+
+    const data = {
+      Subject: "Login Successfully",
+      name: name,
+      first_name: `Dear ${name}, hope you are doing well!`,
+      email: email,
+  
+    };
+
+    commonMailFunctionToAll(data, "loginsuccess");
 
     // Respond with authentication successful
     return res.redirect(`http://localhost:3000/?token=${token}&name=${userfound.Name}&email=${userfound.email}&_id=${userfound._id}&savedProducts=${userfound?.savedProducts}`);
@@ -371,7 +373,15 @@ const UserDetails = async (req, res) => {
 };
 
 
-
+const DeleteUser =async(req,res)=>{
+  try{
+    const { userID } = req.customer;
+    const deleteUser = await UserSchema.deleteOne({_id:userID})
+    return res.status(200).json({message:"User Deleted",deleteUser})
+  }catch(err){
+    return res.status(400).json({message:"error while deleting user"})
+  }
+}
 
 router.post("/login", Login)
 router.post("/register", register)
@@ -380,6 +390,7 @@ router.post("/isGoogleLogin", isGoogleLogin)
 router.get("/isGithubLogin", isGithubLogin)
 router.get("/isGitcallback", isGitcallback)
 router.get("/userDetails", UserDetails)
+router.get("/deleteUser", DeleteUser)
 
 
 

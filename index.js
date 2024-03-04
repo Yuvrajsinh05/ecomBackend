@@ -9,9 +9,9 @@ const path = require('path');
 require("dotenv").config();
 require('./config')
 
-const { CategoriesRoutes, ProductsRoutes, AuthUser, customer, PaymentGateway, ChatBotSocket } = require("./routes/router")
+const { CategoriesRoutes, ProductsRoutes, AuthUser, customer, PaymentGateway, ChatBotSocket, ServerComponent } = require("./routes/router")
 const { verifyToken } = require('./middlewares/security')
-const { Client, Events, GatewayIntentBits } = require('discord.js');
+const { Client , GatewayIntentBits } = require('discord.js');
 const app = express()
 const server = http.createServer(app);
 

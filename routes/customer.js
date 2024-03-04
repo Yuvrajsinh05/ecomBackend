@@ -178,7 +178,7 @@ router.post('/savedProducts', async (req, res) => {
 
 router.get('/orders', async (req, res) => {
   try {
-    const { userID }  = req.customer
+    const { userID } = req.customer
     const orders = await orderSchema.find({ customer_id: userID });
     return res.status(200).json({ data: orders, message: "Order Fetched Succesfully" })
   } catch (error) {
@@ -186,4 +186,7 @@ router.get('/orders', async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 });
+
+
+
 module.exports = router;
