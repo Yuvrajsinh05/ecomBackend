@@ -141,8 +141,9 @@ router.post('/paymentVerification', async (req, res) => {
         razorpay_payment_id,
         razorpay_signature,
       })
-      res.status(200).redirect(`http://localhost:3000/paymentsuccess?reference=${razorpay_payment_id}`);
     }
+
+    return res.redirect(`http://localhost:3000/paymentsuccess?reference=${razorpay_payment_id}`);
     res.end()
   } catch (err) {
     res.status(400).json({ message: "error" })
