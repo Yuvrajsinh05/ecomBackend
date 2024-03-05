@@ -37,7 +37,6 @@ router.post('/sendMessage', async (req, res) => {
     const userMessage = req.body.Message;
     const { IDSock } = req.body;
     const channel = client.channels.cache.get(process.env.CHANNELID)
-    console.log("channelmessage", channel.messages.GuildMessageManager)
     if (channel) {
       await channel.send({
         content: `USER(${IDSock}) SAYING  : ${userMessage}`,
@@ -48,7 +47,6 @@ router.post('/sendMessage', async (req, res) => {
       return res.status(404).json({ message: "Channel not found" });
     }
   } catch (err) {
-    console.log()
     return res.status(200).json({ message: "Failing To Interact" })
   }
 });

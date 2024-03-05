@@ -57,8 +57,6 @@ const register = async (req, res) => {
       PhoneNum: phone
     };
 
-    console.log("mailmuser",mailUserReg)
-
     const Findhim = await UserSchema.findOne({ email: UserEmail })
     if (Findhim) {
       return res.status(500).json({ status:500 ,  message: "email already exists" })
@@ -367,7 +365,6 @@ const UserDetails = async (req, res) => {
 
     res.status(200).json({ Userdata: fetchUserDetails , CartItems :getUserCarts[0]?.items, message: "Details Found" });
   } catch (err) {
-    console.error("Error:", err);
     res.status(500).json({ error: err, message: "Internal Server Error" });
   }
 };

@@ -3,9 +3,7 @@ const UserSchema = require("../Schema/User")
 
 
 function verifyToken(req, res, next) {
-    console.log("Calling" ,req.path)
-    console.log("Calling" ,req.customer)
-    
+    console.log("Calling" ,req.path)    
     if (req.path === '/admin/login'
    || req.path === '/admin/register' 
    || req.path === '/admin/isVerifiedRegister' 

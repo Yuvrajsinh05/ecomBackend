@@ -23,7 +23,6 @@ async function FetchForCustom(parsedIdArray) {
 const replaceProductIds = async (orderItems, Products) => {
   const FinalItems = await Promise.all(orderItems.map(async item => {
     const newData = Products.find(d => d._id.toString() === item.product_id.toString());
-    console.log("newData", newData);
     const CloneKey = {
       quantity: item.quantity
     }
@@ -41,7 +40,7 @@ router.get('/getcarts', async (req, res) => {
   try {
     let qid = req.query.id;
     const FoundCart = await customerCartSchema.find({ customer_id: qid });
-    const IdArray = FoundCart[0].items.map(datas => datas.product_id);
+    const IdArray = FoundCart[0]?.items?.map(datas => datas.product_id);
     const Products = await FetchForCustom(IdArray);
     // Create a copy of the cart object
     let ClonCart = { ...FoundCart[0].toObject() };
@@ -50,10 +49,10 @@ router.get('/getcarts', async (req, res) => {
     // Update ClonCart's items to ["LOCA", "Toca"]
     ClonCart.items = [...newItems];
 
-    res.status(200).json({ data: ClonCart, message: "Cart Found" });
+    return res.status(200).json({ data: ClonCart, message: "Cart Found" });
   } catch (err) {
     console.error(err); // Log any errors
-    res.status(400).json({ message: "No carts found or an error occurred" });
+    return res.status(400).json({ message: "No carts found or an error occurred" });
   }
 });
 

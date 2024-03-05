@@ -190,7 +190,6 @@ router.post('/filterProducts', async (req, res) => {
       };
     }
 
-    console.log("query......",query)
     // Query the respective collections
     const FashionProduct = await FashionProducts.find(query);
     const ComputerProducts = await computerSchema.find(query);

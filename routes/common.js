@@ -124,7 +124,6 @@ const CreateMobileProduct = async (bodyData, matchType) => {
         }
 
 
-        console.log("matchType", matchType, brand)
         if (!matchType?.Brands.includes(brand)) {
             throw { status: 400, message: "We Are Still Limited With Some Brands", PossibleBrands: matchType?.Brands };
         }

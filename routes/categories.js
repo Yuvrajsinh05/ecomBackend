@@ -6,7 +6,6 @@ const jwt = require('jsonwebtoken')
 
 router.get('/Categories', async (req, res) => {
   let data = await CategoriesSchema.find()
-  console.log("CategoriesSchema",data)
   res.send(JSON.stringify(data))
   res.end()
 })
