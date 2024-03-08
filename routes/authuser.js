@@ -381,6 +381,20 @@ router.get("/isGithubLogin", isGithubLogin)
 router.get("/isGitcallback", isGitcallback)
 router.get("/userDetails", UserDetails)
 router.get("/deleteUser", DeleteUser)
+router.get("/getclientkey",async(req,res)=>{
+  try{
+    return res.status(200).json({ClientKey:process.env.CLIENTID})
+  }catch(err){
+    return res.json({message:err})
+  }
+})
+router.get("/oauthclientkey",async(req,res)=>{
+  try{
+    return res.status(200).json({OAUTHCLIENTID:process.env.OAUTHCLIENTID})
+  }catch(err){
+    return res.json({message:err})
+  }
+})
 
 
 
