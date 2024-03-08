@@ -28,6 +28,7 @@ const sendMail = async (from, to, subject, template, text, attachments = []) => 
   };
   try {
     await transporter.sendMail(mail);
+    console.log("Mail Send SuccessFully to" ,to)
     return true;
   } catch (error) {
     console.log('Error from elastic email:' + error);

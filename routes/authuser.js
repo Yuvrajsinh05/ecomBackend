@@ -31,23 +31,17 @@ const register = async (req, res) => {
       message: "InValid Email",
     });
   }
-  // if (!isStrong(UserPassword)) {
-  //   return res.status(404).json({
-  //     message: "Password is not Strong Enough",
-  //   });
-  // }
   try {
-    // if (userOTP == OTP) {
     let data = {
-      Sno: 99, //admins + 1,
       Name: UserName,
       email: UserEmail,
       otp: OTP,
-      phone: phone
-      // password: hashpassword(UserPassword),
+      phone: phone,
+      designation:'user'
     }
     const createUser = new UserSchema(data)
-    //send activation mail here
+
+
     const mailUserReg = {
       Subject: "Registration successFull",
       first_name: `Dear ${UserName} hope you are doing well!`,
@@ -195,7 +189,6 @@ const isGoogleLogin = async (req, res) => {
 
     if (!userfound) {
       let dataRegister = {
-        Sno: sub,
         email: email,
         Name: name,
         Image: picture,
@@ -329,7 +322,7 @@ const isGitcallback = async (req, res) => {
     commonMailFunctionToAll(data, "loginsuccess");
 
     // Respond with authentication successful
-    return res.redirect(`http://localhost:3000/?token=${token}&name=${userfound.Name}&email=${userfound.email}&_id=${userfound._id}&savedProducts=${userfound?.savedProducts}`);
+    return res.redirect(`${process.env.LOCALCLIENT}?token=${token}&name=${userfound.Name}&email=${userfound.email}&_id=${userfound._id}&savedProducts=${userfound?.savedProducts}`);
 
   } catch (err) {
     console.error("Error occurred during GitHub callback:", err);
@@ -350,7 +343,7 @@ const isGithubLogin = async (req, res) => {
     res.status(200).json({reDirect :githubAuthUrl})
     // res.redirect(githubAuthUrl);
   } catch (err) {
-    console.log("GitLoginErr", err);
+    console.error("GitLoginErr", err);
   }
 }
 

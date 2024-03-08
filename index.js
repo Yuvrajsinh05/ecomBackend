@@ -34,11 +34,6 @@ const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBit
 client.login(process.env.DISCORDBOT)
 
 
-
-// console.log("channel",channel)
-
-
-
 const io = new Server(server, {
   cors: {
     origin: process.env.LOCALCLIENT,
@@ -60,7 +55,6 @@ io.once('connection', async (socket) => {
       const mentiondMessage = fetchMessages.content
       const SocketID = mentiondMessage.slice(5, 25);
       console.log("cilent...........", mentiondMessage)
-      console.log("cilent...........", SocketID)
       const MessageToSocket = message.content
       const targetSocket = io.sockets.sockets.get(SocketID);
       if (targetSocket) {

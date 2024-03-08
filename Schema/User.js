@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const UserSchema = new mongoose.Schema(
     {
-        Sno: Number,
         Name: { type: String, required: true, default: "" },
         Image: { type: String, default: "" },
         savedProducts: [
@@ -18,7 +17,7 @@ const UserSchema = new mongoose.Schema(
               ref: 'Computers&Accessories', 
             },
           ],
-        designation: { type: String, default: "" },
+        designation: { type: String, default: "user" },
         phone: { type: String, default: "" },
         email: {
             type: String,

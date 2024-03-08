@@ -43,7 +43,7 @@ router.get('/getcarts', async (req, res) => {
     const IdArray = FoundCart[0]?.items?.map(datas => datas.product_id);
     const Products = await FetchForCustom(IdArray);
     // Create a copy of the cart object
-    let ClonCart = { ...FoundCart[0].toObject() };
+    let ClonCart = { ...FoundCart[0]?.toObject() };
 
     const newItems = await replaceProductIds(FoundCart[0].items, Products)
     // Update ClonCart's items to ["LOCA", "Toca"]

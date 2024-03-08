@@ -33,7 +33,6 @@ router.post('/contact', async (req, res) => {
 
 router.post('/sendMessage', async (req, res) => {
   try {
-    // console.log("reqcustomer",)
     const userMessage = req.body.Message;
     const { IDSock } = req.body;
     const channel = client.channels.cache.get(process.env.CHANNELID)
