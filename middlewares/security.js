@@ -4,6 +4,7 @@ const UserSchema = require("../Schema/User")
 
 async function verifyToken(req, res, next) {
   console.log("Calling", req.path)
+  console.log("ipcalll", req.ip)
 
   if (req.path === '/admin/login'
     || req.path === '/admin/register'

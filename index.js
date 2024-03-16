@@ -13,6 +13,8 @@ const { CategoriesRoutes, ProductsRoutes, AuthUser, customer, PaymentGateway, Ch
 const { verifyToken } = require('./middlewares/security')
 const { Client , GatewayIntentBits } = require('discord.js');
 const app = express()
+app.set('trust proxy', true);
+// console.log("app",app)
 const server = http.createServer(app);
 
 const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' });

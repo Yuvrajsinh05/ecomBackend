@@ -144,6 +144,8 @@ router.get('/getFilterDetails', async (req, res) => {
   }
 })
 
+
+
 router.get('/autoCreateProduct', async (req, res) => {
   try {
     const createFashionProduct = await CategoriesSchema.findOne({ Categories: "Fashion" })
