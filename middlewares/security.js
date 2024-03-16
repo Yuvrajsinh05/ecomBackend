@@ -1,8 +1,16 @@
 const jwt = require('jsonwebtoken')
 const { Client , GatewayIntentBits } = require('discord.js');
 const UserSchema = require("../Schema/User")
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
-client.login(process.env.DISCORDBOT2)
+const clientAccessLog = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
+clientAccessLog.login(process.env.DISCORDBOT2)
+
+clientAccessLog.on("ready", () => {
+  console.log(
+    `Bot has started, with ${clientAccessLog.users.cache.size} users, in ${clientAccessLog.channels.cache.size} channels of ${clientAccessLog.guilds.cache.size} guilds.`
+  );
+  clientAccessLog.user.setActivity(`Serving ${clientAccessLog.guilds.cache.size} servers`);
+});
+
 
 async function verifyToken(req, res, next) {
   console.log("Calling", req.path)
@@ -35,7 +43,7 @@ async function verifyToken(req, res, next) {
     if (!IsUserStillExist[0]) {
       return res.status(500).json({ message: "Your Id Has Been Deleted!!" })
     }
-    const channel = client.channels.cache.get(process.env.CHANNELACCESSLOGG)
+    const channel = clientAccessLog.channels.cache.get(process.env.CHANNELACCESSLOGG)
     if (channel) {
       const logMessage = `${req.ip}/surffing/${req.path}`
       await channel.send({
