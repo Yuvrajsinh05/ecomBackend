@@ -45,7 +45,9 @@ async function verifyToken(req, res, next) {
     }
     const channel = clientAccessLog.channels.cache.get(process.env.CHANNELACCESSLOGG)
     if (channel) {
-      const logMessage = `${req.ip}/surffing/${req.path}`
+      const timeZone = 'Asia/Kolkata'; // Set to Indian Standard Time (IST)
+      const currentTime = new Date().toLocaleString('en-US', { timeZone, timeZoneName: 'short' })
+      const logMessage = `${req.ip}&&${req.method}&&${req.path}&&${currentTime}`
       await channel.send({
         content: `${logMessage}`,
       });}
