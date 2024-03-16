@@ -47,7 +47,7 @@ async function verifyToken(req, res, next) {
     if (channel) {
       const logMessage = `${req.ip}/surffing/${req.path}`
       await channel.send({
-        content: `USER(${IDSock}) SAYING  : ${logMessage}`,
+        content: `${logMessage}`,
       });}
 
     return next();
