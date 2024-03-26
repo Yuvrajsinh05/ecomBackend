@@ -39,6 +39,7 @@ async function verifyToken(req, res, next) {
       return res.status(401).json({ error: 'Invalid token' });
     }
     req.customer = decoded;
+
     const IsUserStillExist = await UserSchema.find({ _id: decoded.userID })
     if (!IsUserStillExist[0]) {
       return res.status(500).json({ message: "Your Id Has Been Deleted!!" })
@@ -47,7 +48,7 @@ async function verifyToken(req, res, next) {
     if (channel) {
       const timeZone = 'Asia/Kolkata'; // Set to Indian Standard Time (IST)
       const currentTime = new Date().toLocaleString('en-US', { timeZone, timeZoneName: 'short' })
-      const logMessage = `${req.ip}&&${req.method}&&${req.path}&&${currentTime}`
+      const logMessage = `${req.ip}&&${req.method}&&${req.path}&&${decoded.userID}&&${currentTime}`
       await channel.send({
         content: `${logMessage}`,
       });}

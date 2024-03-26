@@ -33,12 +33,21 @@ app.use("/admin", customer);
 app.use("/admin", ChatBotSocket);
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
+const client2 = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
 client.login(process.env.DISCORDBOT)
+client2.login(process.env.DISCORDBOT2)
 
 
 const io = new Server(server, {
   cors: {
     origin: process.env.LOCALCLIENT,
+    methods: ["GET", "POST"]
+  }
+})
+
+const io2 = new Server(server, {
+  cors: {
+    origin: process.env.ADMINON,
     methods: ["GET", "POST"]
   }
 })
@@ -70,12 +79,38 @@ io.once('connection', async (socket) => {
   }
 });
 
+io2.on('connection',async(socket)=>{
+  
+ try{
+  console.log("Admin Connected",socket.id)
+  client2.on('messageCreate',async(message)=>{
+    console.log("message",message.content)
+    const channel = await client2.channels.fetch(process.env.CHANNELACCESSLOGG)
+    const fetchMessages = await channel.messages.fetch({limit:50})
+    const logscontent = fetchMessages.map((mess)=> mess.content ) 
+    // console.log("logscontent",socket.id,logscontent)
+    socket.emit('onRecentLog',logscontent)
+})
+
+ }catch(err){
+  console.log("Something Wrong With Admin")
+ }
+})
+
+
 client.on("ready", () => {
   console.log(
     `Bot has started, with ${client.users.cache.size} users, in ${client.channels.cache.size} channels of ${client.guilds.cache.size} guilds.`
   );
   client.user.setActivity(`Serving ${client.guilds.cache.size} servers`);
 });
+client2.on("ready", () => {
+  console.log(
+    `Bot 2 has started, with ${client2.users.cache.size} users, in ${client2.channels.cache.size} channels of ${client2.guilds.cache.size} guilds.`
+  );
+  client2.user.setActivity(`Serving ${client2.guilds.cache.size} servers`);
+});
+
 
 
 
