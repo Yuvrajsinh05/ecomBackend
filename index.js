@@ -47,7 +47,7 @@ const io = new Server(server, {
 
 const io2 = new Server(server, {
   cors: {
-    origin: process.env.LOCALCLIENT,
+    origin: process.env.ADMINON,
     methods: ["GET", "POST"]
   }
 })
