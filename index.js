@@ -45,6 +45,8 @@ const io = new Server(server, {
   }
 })
 
+console.log("ioCONNNECT IO",io  , process.env.LOCALCLIENT)
+
 const io2 = new Server(server, {
   cors: {
     origin: process.env.ADMINON,
@@ -78,6 +80,8 @@ io.once('connection', async (socket) => {
     console.error("Error fetching channel or messages:", error);
   }
 });
+
+
 
 io2.on('connection',async(socket)=>{
   
