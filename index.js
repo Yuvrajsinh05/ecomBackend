@@ -45,7 +45,7 @@ const io = new Server(server, {
   }
 })
 
-console.log("ioCONNNECT IO",io  , process.env.LOCALCLIENT)
+console.log("CONNNECT IO", process.env.LOCALCLIENT)
 
 const io2 = new Server(server, {
   cors: {
@@ -55,7 +55,7 @@ const io2 = new Server(server, {
 })
 
 
-io.once('connection', async (socket) => { 
+io.on('connection', async (socket) => { 
   console.log("socketID connected", socket.id)
   try {
     client.removeAllListeners("messageCreate"); 
