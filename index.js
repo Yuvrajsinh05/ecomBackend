@@ -114,6 +114,7 @@ server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
-server2.listen(PORT + 1, () => {
-  console.log(`Server 2 is running on port ${PORT + 1}`);
+const PORT2 = PORT + 1  || 8671;
+server2.listen(PORT2, () => {
+  console.log(`Server 2 is running on port ${PORT2}`);
 });
